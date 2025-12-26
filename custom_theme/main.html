@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% if page.title %}{{ page.title }} - {% endif %}{{ config.site_name }}</title>
+  {% if config.site_description %}
+  <meta name="description" content="{{ config.site_description }}" />
+  {% endif %}
+  {% if config.site_author %}
+  <meta name="author" content="{{ config.site_author }}" />
+  {% endif %}
+  {% if page and page.canonical_url %}
+  <link rel="canonical" href="{{ page.canonical_url }}" />
+  {% endif %}
+  <link rel="stylesheet" href="{{ 'assets/stylesheets/main.css'|url }}" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">☀️ / 🌙</button>
+  
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <a href="{{ nav.homepage.url|url }}" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit;">
+          <svg width="60" height="48" viewBox="0 0 60 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g clip-path="url(#clip0_670_2375)">
+              <path d="M58.1389 33.6408C59.5615 33.3967 60.3326 35.2493 59.1579 36.0893L54.8969 39.1362C54.7322 39.2539 54.5433 39.3333 54.344 39.3686L5.96673 47.939C4.52532 48.1943 3.75565 46.3 4.96548 45.4746L10.0193 42.0271C10.1801 41.9173 10.3627 41.8435 10.5545 41.8105L58.1389 33.6408ZM11.0191 16.6476C16.3552 15.7051 18.9887 17.9536 18.9887 21.9006C18.9887 27.3982 14.9346 30.8277 8.7667 31.917L6.82624 32.2598L5.78678 38.5047L0 39.5267L3.56906 17.9632L11.0191 16.6476ZM38.7701 23.7286C37.6958 30.156 34.404 33.8033 28.6174 34.8253C23.5584 35.7187 20.0586 33.8699 20.0586 29.2533C20.0586 28.619 20.1278 27.8314 20.2664 26.9964L22.3108 14.6535L28.0976 13.6315L26.1571 25.357C26.0878 25.8274 26.0186 26.5444 26.0186 26.932C26.0186 28.8703 27.058 29.744 29.1371 29.3769C31.5972 28.9424 32.8448 27.1715 33.3299 24.3019L35.305 12.3586L40.8146 11.3857L38.7701 23.7286ZM51.4904 9.50074C56.8267 8.55834 59.4601 10.8067 59.4601 14.7536C59.4601 20.2513 55.4059 23.6809 49.238 24.7701L47.2976 25.1128L46.2581 31.3579L40.4713 32.3798L44.0404 10.8164L51.4904 9.50074ZM13.0634 23.2641C13.0634 21.8898 12.1971 21.2323 10.2567 21.5749L8.5241 21.8809L7.62321 27.3261L9.32107 27.0263C11.8159 26.5857 13.0634 25.2728 13.0634 23.2641ZM53.5348 16.1174C53.5348 14.7429 52.6685 14.0853 50.728 14.428L48.9956 14.734L48.0946 20.1793L49.7926 19.8794C52.2873 19.4389 53.5347 18.1261 53.5348 16.1174ZM58.3721 0.0220205C59.7972 -0.222742 60.5669 1.6359 59.387 2.4733L55.1689 5.46715C55.0052 5.58338 54.8177 5.66183 54.62 5.69685L6.29201 14.2583C4.8481 14.514 4.07985 12.6139 5.29457 11.7913L10.3024 8.39985C10.4624 8.29155 10.6435 8.21858 10.8338 8.1859L58.3721 0.0220205Z" fill="currentColor"></path>
+            </g>
+          </svg>
+          <span>{{ config.site_name }}</span>
+        </a>
+      </div>
+      <nav class="nav">
+        {% for nav_item in nav %}
+          {% if nav_item.children %}
+            <a href="{{ nav_item.url|url }}">{{ nav_item.title }}</a>
+          {% else %}
+            <a href="{{ nav_item.url|url }}" {% if nav_item.active %}class="active"{% endif %}>{{ nav_item.title }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if config.repo_url %}
+          <a href="{{ config.repo_url }}">GitHub</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {% if page.is_homepage %}
+    <section class="hero">
+      <h1>Clean Event Sourcing with Go</h1>
+      <p>A pragmatic Go library for building event-sourced systems with clarity and performance.</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="{{ 'getting-started/'|url }}">Get Started</a>
+        {% if config.repo_url %}
+          <a class="btn secondary" href="{{ config.repo_url }}">View on GitHub</a>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="cards">
+      <div class="card"><h3>📦 Simple</h3><p>Minimal abstractions, no magic.</p></div>
+      <div class="card"><h3>⚡ Production Ready</h3><p>Built for real workloads.</p></div>
+      <div class="card"><h3>🧠 Go Native</h3><p>Feels idiomatic and explicit.</p></div>
+    </section>
+    {% endif %}
+
+    <article class="content">
+      {{ page.content }}
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© 2025 {{ config.site_name }}</span>
+      {% if config.repo_url %}
+        <a href="{{ config.repo_url }}">{{ config.repo_name }}</a>
+      {% endif %}
+    </div>
+  </footer>
+
+  <script src="{{ 'assets/javascripts/theme.js'|url }}"></script>
+</body>
+</html>
