@@ -74,7 +74,7 @@ if err != nil {
     log.Fatal(err)
 }
 defer db.Close()
-```go
+```
 
 ### 4. Create Event Store
 
@@ -139,7 +139,7 @@ if err := tx.Commit(); err != nil {
 
 fmt.Printf("Event appended at position: %d\n", result.GlobalPositions[0])
 fmt.Printf("Aggregate version: %d\n", result.ToVersion())
-```go
+```
 
 ### 6. Read Events
 
@@ -195,7 +195,7 @@ func (p *UserCountProjection) Handle(_ context.Context, event es.PersistedEvent)
     }
     return nil
 }
-```go
+```
 
 ### 8. Run the Projection
 
@@ -258,7 +258,7 @@ events := []es.Event{
 
 // Both events appended atomically
 result, err := store.Append(ctx, tx, es.NoStream(), events)
-```go
+```
 
 ### Handling Version Conflicts
 
@@ -302,7 +302,7 @@ Verify migrations were applied:
 \d events
 \d aggregate_heads
 \d projection_checkpoints
-```go
+```
 
 ### Event Not Appearing
 
@@ -318,7 +318,7 @@ tx.Commit() // Don't forget this!
 Verify events exist:
 ```sql
 SELECT COUNT(*) FROM events;
-```sql
+```
 
 Check projection checkpoint:
 ```sql

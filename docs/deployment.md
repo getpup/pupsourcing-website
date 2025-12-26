@@ -465,7 +465,7 @@ func runProjections() {
     r := runner.New()
     r.Run(ctx, runners)
 }
-```go
+```
 
 ## Configuration Management
 
@@ -498,7 +498,7 @@ func loadConfig() Config {
         TotalPartitions: totalPartitions,
     }
 }
-```sql
+```
 
 ## Monitoring
 
@@ -630,7 +630,7 @@ func healthCheck(db *sql.DB) http.HandlerFunc {
         })
     }
 }
-```go
+```
 
 ## Operational Best Practices
 
@@ -689,7 +689,7 @@ func main() {
         log.Printf("Projection error: %v", err)
     }
 }
-```sql
+```
 
 ### Backup and Recovery
 
@@ -717,7 +717,7 @@ TRUNCATE TABLE my_read_model;
 DELETE FROM projection_checkpoints WHERE projection_name = 'my_projection';
 
 -- 4. Restart projection (rebuilds from scratch)
-```sql
+```
 
 ### Security Considerations
 
@@ -761,7 +761,7 @@ FROM projection_checkpoints;
 SELECT projection_name, updated_at
 FROM projection_checkpoints
 ORDER BY updated_at DESC;
-```sql
+```
 
 **Solutions:**
 1. **Increase batch size** - Process more events per transaction

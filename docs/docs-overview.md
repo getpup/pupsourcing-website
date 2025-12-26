@@ -131,7 +131,7 @@ Process each event and update a regular database table:
 │ 1  │ alice@newdomain.com   │ Alice │ active   │
 │ 2  │ bob@example.com       │ Bob   │ inactive │
 └────┴───────────────────────┴───────┴──────────┘
-```go
+```
 
 Now you can query: `SELECT * FROM users_view WHERE status = 'active'` - fast and simple!
 
@@ -221,7 +221,7 @@ store := sqlite.NewStore(sqlite.DefaultStoreConfig())
 
 // MySQL
 store := mysql.NewStore(mysql.DefaultStoreConfig())
-```go
+```
 
 ### 🏗️ Bounded Context Support
 
@@ -249,7 +249,7 @@ result, err := store.Append(ctx, tx,
     []es.Event{event},
 )
 // If another process already wrote version 4, this fails
-```go
+```
 
 ### 📊 Powerful Projections
 
@@ -320,7 +320,7 @@ go get github.com/getpup/pupsourcing
 
 # Choose your database driver
 go get github.com/lib/pq  # PostgreSQL
-```go
+```
 
 ### Your First Event
 

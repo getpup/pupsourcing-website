@@ -32,7 +32,7 @@ type Logger interface {
     Info(ctx context.Context, msg string, keyvals ...interface{})
     Error(ctx context.Context, msg string, keyvals ...interface{})
 }
-```go
+```
 
 ### Event Store Logging
 
@@ -73,7 +73,7 @@ import "github.com/getpup/pupsourcing/es/projection"
 config := projection.DefaultProcessorConfig()
 config.Logger = &MyLogger{logger: slog.Default()}
 processor := projection.NewProcessor(db, store, &config)
-```go
+```
 
 ### Zero-Overhead Design
 
@@ -107,7 +107,7 @@ func (l *StdLogger) Info(ctx context.Context, msg string, keyvals ...interface{}
 func (l *StdLogger) Error(ctx context.Context, msg string, keyvals ...interface{}) {
     log.Printf("[ERROR] %s %v", msg, keyvals)
 }
-```go
+```
 
 #### slog (Go 1.21+)
 
@@ -151,7 +151,7 @@ func (l *ZapLogger) Info(ctx context.Context, msg string, keyvals ...interface{}
 func (l *ZapLogger) Error(ctx context.Context, msg string, keyvals ...interface{}) {
     l.logger.Errorw(msg, keyvals...)
 }
-```go
+```
 
 #### zerolog
 
@@ -205,7 +205,7 @@ func toLogrusFields(keyvals []interface{}) logrus.Fields {
     }
     return fields
 }
-```go
+```
 
 See the [with-logging example](../examples/with-logging/) for a complete working demonstration.
 
@@ -301,7 +301,7 @@ func (p *TracedProjection) Handle(ctx context.Context, event es.PersistedEvent) 
     
     return nil
 }
-```go
+```
 
 ### Correlation and Causation
 
@@ -389,7 +389,7 @@ func (s *TracingEventStore) Append(ctx context.Context, tx es.DBTX, expectedVers
     span.SetAttributes(attribute.Int64Slice("positions", result.GlobalPositions))
     return result, nil
 }
-```sql
+```
 
 You can apply the same pattern to wrap `ReadEvents` and `ReadAggregateStream` methods, creating spans for read operations to track query performance and access patterns.
 

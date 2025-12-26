@@ -32,7 +32,7 @@ type Event struct {
     TraceID        es.NullString  // Distributed tracing ID
     EventID        uuid.UUID       // Unique event identifier
 }
-```go
+```
 
 **Note:** `AggregateVersion` and `GlobalPosition` are assigned by the store during `Append`. The field order is optimized for memory layout.
 
@@ -79,7 +79,7 @@ reservationEvent := es.Event{
 }
 _, err := store.Append(ctx, tx, es.NoStream(), []es.Event{reservationEvent})
 // Second attempt with same email will fail with ErrOptimisticConcurrency
-```go
+```
 
 ### es.PersistedEvent
 
@@ -116,7 +116,7 @@ type DBTX interface {
     QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
     QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
 }
-```go
+```
 
 Implemented by both `*sql.DB` and `*sql.Tx`.
 
@@ -156,7 +156,7 @@ func (l *MyLogger) Error(ctx context.Context, msg string, keyvals ...interface{}
 config := postgres.DefaultStoreConfig()
 config.Logger = &MyLogger{logger: slog.Default()}
 store := postgres.NewStore(config)
-```go
+```
 
 See the [Observability Guide](./observability.md) for complete documentation and examples.
 
@@ -182,7 +182,7 @@ Interface for appending events.
 type EventStore interface {
     Append(ctx context.Context, tx es.DBTX, expectedVersion es.ExpectedVersion, events []es.Event) (es.AppendResult, error)
 }
-```go
+```
 
 #### Append
 
@@ -231,7 +231,7 @@ if errors.Is(err, store.ErrOptimisticConcurrency) {
 }
 
 tx.Commit()
-```go
+```
 
 ### store.EventReader
 
@@ -249,7 +249,7 @@ Reads events starting from a position.
 
 ```go
 func (s *EventReader) ReadEvents(ctx context.Context, tx es.DBTX, fromPosition int64, limit int) ([]es.PersistedEvent, error)
-```go
+```
 
 **Parameters:**
 - `ctx`: Context
@@ -280,7 +280,7 @@ Reads all events for an aggregate, optionally filtered by version range.
 func (s *Store) ReadAggregateStream(ctx context.Context, tx es.DBTX, 
                                    aggregateType string, aggregateID string,
                                    fromVersion, toVersion *int64) (es.Stream, error)
-```go
+```
 
 **Parameters:**
 - `aggregateType`: Type of aggregate (e.g., "User")
@@ -342,7 +342,7 @@ type ScopedProjection interface {
     Projection
     AggregateTypes() []string
 }
-```go
+```
 
 #### When to Use
 
@@ -402,7 +402,7 @@ func (p *UserReadModelProjection) Handle(ctx context.Context, event es.Persisted
     }
     return nil
 }
-```go
+```
 
 ### projection.Projection
 
@@ -436,7 +436,7 @@ func (p *WatermillPublisher) Handle(ctx context.Context, event es.PersistedEvent
     msg := message.NewMessage(event.EventID.String(), event.Payload)
     return p.publisher.Publish(event.EventType, msg)
 }
-```go
+```
 
 #### Example: SQL Read Model Projection
 
@@ -467,7 +467,7 @@ Returns unique projection name used for checkpoint tracking.
 func (p *MyProjection) Name() string {
     return "my_projection"
 }
-```go
+```
 
 #### Handle
 
@@ -504,7 +504,7 @@ Creates a new PostgreSQL projection processor.
 
 ```go
 func NewProcessor(db *sql.DB, store *postgres.Store, config *projection.ProcessorConfig) *Processor
-```go
+```
 
 **Parameters:**
 - `db`: PostgreSQL database connection
@@ -531,7 +531,7 @@ Processes events for a projection.
 type Processor struct {
     // unexported fields
 }
-```go
+```
 
 #### NewProcessor
 
@@ -560,7 +560,7 @@ Runs the projection until context is cancelled or an error occurs.
 
 ```go
 func (p *Processor) Run(ctx context.Context, projection Projection) error
-```go
+```
 
 **Parameters:**
 - `ctx`: Context for cancellation
@@ -596,7 +596,7 @@ type ProcessorConfig struct {
     PartitionKey      int                // This worker's partition (0-indexed)
     TotalPartitions   int                // Total number of partitions
 }
-```go
+```
 
 **Note:** Fields are ordered by size (interfaces/pointers first) for optimal memory layout.
 
@@ -626,7 +626,7 @@ Interface for partitioning strategies.
 type PartitionStrategy interface {
     ShouldProcess(aggregateID string, partitionKey, totalPartitions int) bool
 }
-```go
+```
 
 ### projection.HashPartitionStrategy
 
@@ -650,7 +650,7 @@ Orchestrates multiple projections.
 type Runner struct {
     // unexported fields
 }
-```go
+```
 
 #### New
 
@@ -666,7 +666,7 @@ Runs multiple projections concurrently.
 
 ```go
 func (r *Runner) Run(ctx context.Context, configs []ProjectionConfig) error
-```go
+```
 
 **Parameters:**
 - `ctx`: Context for cancellation
@@ -705,7 +705,7 @@ type ProjectionRunner struct {
     Projection projection.Projection
     Processor  projection.ProcessorRunner
 }
-```go
+```
 
 **Fields:**
 - `Projection`: The projection to run
@@ -735,7 +735,7 @@ PostgreSQL implementation of EventStore, EventReader, AggregateStreamReader, and
 type Store struct {
     // unexported fields
 }
-```go
+```
 
 #### NewStore
 
@@ -754,7 +754,7 @@ func NewStore(config StoreConfig) *Store
 **Example:**
 ```go
 store := postgres.NewStore(postgres.DefaultStoreConfig())
-```go
+```
 
 ### postgres.StoreConfig
 

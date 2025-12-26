@@ -88,7 +88,7 @@ tx.Commit()
 
 // Generate migrations
 err := migrations.GeneratePostgres(&config)
-```go
+```
 
 ### Projection Processing
 
@@ -183,7 +183,7 @@ db.Exec("PRAGMA journal_mode = WAL;")
 tx, _ := db.BeginTx(ctx, nil)
 result, err := store.Append(ctx, tx, es.NoStream(), events)
 tx.Commit()
-```go
+```
 
 #### Migration Generation
 
@@ -276,7 +276,7 @@ db, _ := sql.Open("mysql", dsn)
 tx, _ := db.BeginTx(ctx, nil)
 result, err := store.Append(ctx, tx, es.NoStream(), events)
 tx.Commit()
-```go
+```
 
 #### Migration Generation
 
@@ -326,7 +326,7 @@ type StoreConfig struct {
     CheckpointsTable    string // Default: "projection_checkpoints"
     AggregateHeadsTable string // Default: "aggregate_heads"
 }
-```sql
+```
 
 ## Testing Recommendations
 

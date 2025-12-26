@@ -26,7 +26,7 @@ Generate database schema:
 go run github.com/getpup/pupsourcing/cmd/migrate-gen -output migrations
 
 # Load the generated SQL into your database
-```go
+```
 
 ### 2. Save an Event
 
@@ -70,7 +70,7 @@ stream, err := store.ReadAggregateStream(
 for _, event := range stream.Events {
     // Apply event to rebuild state
 }
-```go
+```
 
 ---
 

@@ -119,7 +119,7 @@ event := es.Event{
     EventType:      "ProductAdded",
     // ...
 }
-```go
+```
 
 ### Choosing Bounded Contexts
 
@@ -189,7 +189,7 @@ type PersistedEvent struct {
     TraceID          es.NullString
     EventID          uuid.UUID
 }
-```sql
+```
 
 This separation ensures events are value objects until persisted. The store assigns both position in the global log and version within the aggregate, guaranteeing consistency.
 
@@ -268,7 +268,7 @@ events := []es.Event{
         CreatedAt:      time.Now(),
     },
 }
-```go
+```
 
 **Key principle:** All events for the same aggregate are processed in order.
 
@@ -302,7 +302,7 @@ type ScopedProjection interface {
     AggregateTypes() []string     // Filter by aggregate type
     BoundedContexts() []string    // Filter by bounded context
 }
-```go
+```
 
 2. **Global Projections** - Receive all events (for integration/audit):
 ```go
@@ -331,7 +331,7 @@ CREATE TABLE projection_checkpoints (
     last_global_position BIGINT NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL
 );
-```go
+```
 
 **Key features:**
 - One checkpoint per projection
@@ -414,7 +414,7 @@ User ABC:
 User XYZ:
   Event 1 → aggregate_version = 1 (UserCreated)
   Event 2 → aggregate_version = 2 (Deactivated)
-```go
+```
 
 **Uses:**
 - Optimistic concurrency
@@ -471,7 +471,7 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
         event.EventID)
     return err
 }
-```go
+```
 
 **Idempotent approach 2: Use upsert semantics**
 ```go
@@ -536,7 +536,7 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
     }
     return err
 }
-```go
+```
 
 ### Transaction Boundaries
 
@@ -623,7 +623,7 @@ for {
     }
     // Update checkpoint and commit
 }
-```go
+```
 
 Benefits:
 - Natural backpressure mechanism (slow projections won't overwhelm the system)
@@ -689,7 +689,7 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
     }
     return nil
 }
-```go
+```
 
 ### Pattern 3: Aggregate Reconstruction
 

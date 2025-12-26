@@ -56,7 +56,7 @@ config := projection.ProcessorConfig{
     TotalPartitions: 4,        // Like partition count
 }
 processor := projection.NewProcessor(db, store, &config)
-```go
+```
 
 ### Key Differences
 
@@ -172,7 +172,7 @@ func (p *MyProjection) Handle(ctx context.Context, event es.PersistedEvent) erro
     }
     return nil
 }
-```go
+```
 
 ### Key Differences
 
