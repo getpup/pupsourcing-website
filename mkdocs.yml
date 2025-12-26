@@ -12,18 +12,7 @@ theme:
   
 nav:
   - Home: index.md
-  - Getting Started: getting-started.md
-  - Docs:
-    - Overview: docs-overview.md
-    - Core Concepts: core-concepts.md
-    - Supported Databases: adapters.md
-    - Code Generation: eventmap-gen.md
-    - Production:
-      - Deployment: deployment.md
-      - Scaling & Projections: scaling.md
-      - Observability: observability.md
-    - Industry Alignment: industry-alignment.md
-    - API Reference: api-reference.md
+  - Docs: docs-overview.md
   - About: about.md
 
 markdown_extensions:

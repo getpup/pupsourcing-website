@@ -67,25 +67,22 @@
     <div class="docs-layout">
       <aside class="sidebar">
         <nav class="sidebar-nav">
-          {% for nav_item in nav %}
-            {% if nav_item.children %}
-              <div class="nav-section">
-                <div class="nav-section-title">{{ nav_item.title }}</div>
-                {% for child in nav_item.children %}
-                  {% if child.children %}
-                    <div class="nav-subsection">
-                      <div class="nav-subsection-title">{{ child.title }}</div>
-                      {% for subchild in child.children %}
-                        <a href="{{ subchild.url|url }}" class="nav-link{% if subchild.active %} active{% endif %}">{{ subchild.title }}</a>
-                      {% endfor %}
-                    </div>
-                  {% else %}
-                    <a href="{{ child.url|url }}" class="nav-link{% if child.active %} active{% endif %}">{{ child.title }}</a>
-                  {% endif %}
-                {% endfor %}
-              </div>
-            {% endif %}
-          {% endfor %}
+          <div class="nav-section">
+            <div class="nav-section-title">Docs</div>
+            <a href="{{ 'docs-overview/'|url }}" class="nav-link{% if page.url == 'docs-overview/' %} active{% endif %}">Overview</a>
+            <a href="{{ 'getting-started/'|url }}" class="nav-link{% if page.url == 'getting-started/' %} active{% endif %}">Getting Started</a>
+            <a href="{{ 'core-concepts/'|url }}" class="nav-link{% if page.url == 'core-concepts/' %} active{% endif %}">Core Concepts</a>
+            <a href="{{ 'adapters/'|url }}" class="nav-link{% if page.url == 'adapters/' %} active{% endif %}">Supported Databases</a>
+            <a href="{{ 'eventmap-gen/'|url }}" class="nav-link{% if page.url == 'eventmap-gen/' %} active{% endif %}">Code Generation</a>
+            <div class="nav-subsection">
+              <div class="nav-subsection-title">Production</div>
+              <a href="{{ 'deployment/'|url }}" class="nav-link{% if page.url == 'deployment/' %} active{% endif %}">Deployment</a>
+              <a href="{{ 'scaling/'|url }}" class="nav-link{% if page.url == 'scaling/' %} active{% endif %}">Scaling & Projections</a>
+              <a href="{{ 'observability/'|url }}" class="nav-link{% if page.url == 'observability/' %} active{% endif %}">Observability</a>
+            </div>
+            <a href="{{ 'industry-alignment/'|url }}" class="nav-link{% if page.url == 'industry-alignment/' %} active{% endif %}">Industry Alignment</a>
+            <a href="{{ 'api-reference/'|url }}" class="nav-link{% if page.url == 'api-reference/' %} active{% endif %}">API Reference</a>
+          </div>
         </nav>
       </aside>
       <article class="content">

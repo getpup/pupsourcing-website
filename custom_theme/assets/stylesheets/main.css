@@ -202,6 +202,7 @@ a:hover {
   font-weight: 700;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.5rem;
+  position: relative;
 }
 
 .content h2 {
@@ -211,6 +212,7 @@ a:hover {
   font-weight: 700;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.5rem;
+  position: relative;
 }
 
 .content h3 {
@@ -218,6 +220,7 @@ a:hover {
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
   font-weight: 600;
+  position: relative;
 }
 
 .content h4 {
@@ -225,6 +228,41 @@ a:hover {
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
+  position: relative;
+}
+
+/* Permalink anchors (¶) */
+.content h1 .headerlink,
+.content h2 .headerlink,
+.content h3 .headerlink,
+.content h4 .headerlink,
+.content h5 .headerlink,
+.content h6 .headerlink {
+  opacity: 0;
+  font-size: 0.7em;
+  margin-left: 0.5rem;
+  color: var(--text-muted);
+  transition: opacity var(--transition), color var(--transition);
+  text-decoration: none;
+}
+
+.content h1:hover .headerlink,
+.content h2:hover .headerlink,
+.content h3:hover .headerlink,
+.content h4:hover .headerlink,
+.content h5:hover .headerlink,
+.content h6:hover .headerlink {
+  opacity: 1;
+}
+
+.content h1 .headerlink:hover,
+.content h2 .headerlink:hover,
+.content h3 .headerlink:hover,
+.content h4 .headerlink:hover,
+.content h5 .headerlink:hover,
+.content h6 .headerlink:hover {
+  color: var(--primary);
+  text-decoration: none;
 }
 
 .content p {
