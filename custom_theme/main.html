@@ -32,11 +32,7 @@
       </div>
       <nav class="nav">
         {% for nav_item in nav %}
-          {% if nav_item.children %}
-            <a href="{{ nav_item.url|url }}">{{ nav_item.title }}</a>
-          {% else %}
-            <a href="{{ nav_item.url|url }}" {% if nav_item.active %}class="active"{% endif %}>{{ nav_item.title }}</a>
-          {% endif %}
+          <a href="{{ nav_item.url|url }}" {% if nav_item.active %}class="active"{% endif %}>{{ nav_item.title }}</a>
         {% endfor %}
         {% if config.repo_url %}
           <a href="{{ config.repo_url }}">GitHub</a>
