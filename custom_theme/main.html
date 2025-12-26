@@ -45,7 +45,7 @@
     {% if page.is_homepage %}
     <section class="hero">
       <h1>Clean Event Sourcing with Go</h1>
-      <p>A pragmatic Go library for building event-sourced systems with clarity and performance.</p>
+      <p>A pragmatic Go library for building event-sourced systems that handles infrastructure without creeping into your domain model.</p>
       <div class="hero-actions">
         <a class="btn primary" href="{{ 'getting-started/'|url }}">Get Started</a>
         {% if config.repo_url %}
@@ -55,15 +55,44 @@
     </section>
 
     <section class="cards">
-      <div class="card"><h3>📦 Simple</h3><p>Minimal abstractions, no magic.</p></div>
-      <div class="card"><h3>⚡ Production Ready</h3><p>Built for real workloads.</p></div>
+      <div class="card"><h3>🏗️ Mature Infrastructure</h3><p>ES infrastructure that doesn't creep into your domain logic.</p></div>
+      <div class="card"><h3>⚡ Simple Yet Powerful</h3><p>Easy to start and use, with powerful capabilities when you need them.</p></div>
       <div class="card"><h3>🧠 Go Native</h3><p>Feels idiomatic and explicit.</p></div>
     </section>
-    {% endif %}
 
     <article class="content">
       {{ page.content }}
     </article>
+    {% else %}
+    <div class="docs-layout">
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          {% for nav_item in nav %}
+            {% if nav_item.children %}
+              <div class="nav-section">
+                <div class="nav-section-title">{{ nav_item.title }}</div>
+                {% for child in nav_item.children %}
+                  {% if child.children %}
+                    <div class="nav-subsection">
+                      <div class="nav-subsection-title">{{ child.title }}</div>
+                      {% for subchild in child.children %}
+                        <a href="{{ subchild.url|url }}" class="nav-link{% if subchild.active %} active{% endif %}">{{ subchild.title }}</a>
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    <a href="{{ child.url|url }}" class="nav-link{% if child.active %} active{% endif %}">{{ child.title }}</a>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </nav>
+      </aside>
+      <article class="content">
+        {{ page.content }}
+      </article>
+    </div>
+    {% endif %}
   </main>
 
   <footer class="site-footer">
