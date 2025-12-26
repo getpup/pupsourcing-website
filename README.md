@@ -4,7 +4,7 @@ Documentation website for the [getpup/pupsourcing](https://github.com/getpup/pup
 
 ## Overview
 
-This repository hosts the documentation website for pupsourcing, built with [MkDocs](https://www.mkdocs.org/) and the [GitBook theme](https://github.com/GitbookIO/theme-default).
+This repository hosts the documentation website for pupsourcing, built with [MkDocs](https://www.mkdocs.org/) and the [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) theme.
 
 ## Local Development
 
@@ -17,7 +17,7 @@ This repository hosts the documentation website for pupsourcing, built with [MkD
 
 1. Install dependencies:
 ```bash
-pip install mkdocs mkdocs-gitbook
+pip install -r requirements.txt
 ```
 
 2. Run the development server:
@@ -26,6 +26,13 @@ mkdocs serve
 ```
 
 3. Open your browser to [http://localhost:8000](http://localhost:8000)
+
+The site features:
+- 🌓 **Light/Dark mode** with automatic detection based on your system preference
+- 🎨 **Modern, lightweight design** built on Material for MkDocs
+- 🔍 **Fast search** with suggestions and highlighting
+- 📱 **Responsive** layout for all devices
+- ⚡ **Instant navigation** for fast page loads
 
 ### Building the Site
 
@@ -40,6 +47,7 @@ The built site will be in the `site/` directory.
 
 - `mkdocs.yml` - MkDocs configuration
 - `docs/` - Documentation content
+  - `assets/` - Images, logos, and custom CSS
   - `index.md` - Landing page with event sourcing introduction
   - `getting-started.md` - Installation and quick start
   - `core-concepts.md` - Event sourcing fundamentals

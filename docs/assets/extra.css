@@ -1,0 +1,106 @@
+/* Custom styles for a modern, lightweight look */
+
+:root {
+  --md-primary-fg-color: #2c5282;
+  --md-primary-fg-color--light: #3b6ea5;
+  --md-primary-fg-color--dark: #1e3a5f;
+  --md-accent-fg-color: #4299e1;
+}
+
+/* Improve typography */
+.md-typeset {
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.md-typeset h2 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 2em;
+}
+
+/* Code blocks - clean and modern */
+.md-typeset code {
+  background-color: var(--md-code-bg-color);
+  border-radius: 0.25rem;
+  padding: 0.15em 0.4em;
+  font-size: 0.85em;
+}
+
+.md-typeset pre > code {
+  padding: 1rem;
+  line-height: 1.5;
+}
+
+/* Admonitions - lighter style */
+.md-typeset .admonition {
+  border-left: 0.3rem solid;
+  border-radius: 0.3rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Navigation - cleaner spacing */
+.md-nav__item {
+  padding: 0.2rem 0;
+}
+
+.md-nav__link {
+  margin-top: 0;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease;
+}
+
+.md-nav__link:hover {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+/* Header - minimal and clean */
+.md-header {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Logo styling */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 2rem;
+  width: 2rem;
+}
+
+/* Search - modern look */
+.md-search__input {
+  border-radius: 0.3rem;
+}
+
+/* Footer - minimal */
+.md-footer {
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Tables - cleaner borders */
+.md-typeset table:not([class]) {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.3rem;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-default-bg-color);
+  font-weight: 600;
+}
+
+/* Links - subtle underline on hover */
+.md-typeset a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive improvements */
+@media screen and (max-width: 76.1875em) {
+  .md-nav--primary .md-nav__title {
+    background-color: var(--md-primary-fg-color);
+  }
+}

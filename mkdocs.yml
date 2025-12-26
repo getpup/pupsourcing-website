@@ -5,10 +5,50 @@ site_url: https://getpup.github.io/pupsourcing-website
 
 repo_name: getpup/pupsourcing
 repo_url: https://github.com/getpup/pupsourcing
+edit_uri: https://github.com/getpup/pupsourcing-website/edit/main/docs/
 
 theme:
-  name: gitbook
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
   
+  # Light/Dark mode with auto-detection
+  palette:
+    # Automatic mode (respects prefers-color-scheme)
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  
+  features:
+    - navigation.instant       # Fast page loading
+    - navigation.tracking      # URL updates with scroll
+    - navigation.tabs          # Top-level tabs
+    - navigation.sections      # Expandable sections
+    - navigation.top           # Back to top button
+    - search.suggest           # Search suggestions
+    - search.highlight         # Highlight search terms
+    - content.code.copy        # Copy button for code blocks
+    - content.action.edit      # Edit this page link
+    
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
@@ -26,6 +66,26 @@ nav:
 
 markdown_extensions:
   - admonition
-  - codehilite
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
   - toc:
       permalink: true
+      toc_depth: 3
+  - attr_list
+  - md_in_html
+  - tables
+
+extra_css:
+  - assets/extra.css
+
+plugins:
+  - search:
+      lang: en
