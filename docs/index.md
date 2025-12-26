@@ -15,11 +15,17 @@ go get github.com/getpup/pupsourcing
 Choose your database driver:
 
 ```bash
-# PostgreSQL (recommended for production)
+# PostgreSQL
 go get github.com/lib/pq
+```
 
-# SQLite (ideal for development)
-go get modernc.org/sqlite
+Generate database schema:
+
+```bash
+# Generate SQL migrations for your database
+go run github.com/getpup/pupsourcing/cmd/migrate-gen -output migrations
+
+# Load the generated SQL into your database
 ```
 
 ### 2. Save an Event
