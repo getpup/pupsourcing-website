@@ -1,9 +1,5 @@
 # Pupsourcing
 
-[![CI](https://github.com/getpup/pupsourcing/actions/workflows/ci.yml/badge.svg)](https://github.com/getpup/pupsourcing/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/getpup/pupsourcing)](https://goreportcard.com/report/github.com/getpup/pupsourcing)
-[![GoDoc](https://godoc.org/github.com/getpup/pupsourcing?status.svg)](https://godoc.org/github.com/getpup/pupsourcing)
-
 A production-ready Event Sourcing library for Go with clean architecture principles.
 
 ---
@@ -11,6 +7,28 @@ A production-ready Event Sourcing library for Go with clean architecture princip
 ## What is Event Sourcing?
 
 Event sourcing is a powerful architectural pattern that stores **state changes as an immutable sequence of events** rather than maintaining only the current state. Instead of updating records (CRUD), your system appends events that describe **what happened**.
+
+### Think of it Like a Bank Statement
+
+Imagine your bank account. The bank doesn't just store your current balance - they keep a complete record of every transaction:
+
+```
+Jan 1:  Deposit    +$1000  → Balance: $1000
+Jan 5:  Withdraw   -$200   → Balance: $800
+Jan 10: Deposit    +$500   → Balance: $1300
+Jan 15: Withdraw   -$300   → Balance: $1000
+```
+
+If you wanted to know your balance on January 10th, the bank could replay all transactions up to that date. This is exactly how event sourcing works - instead of storing the final balance, you store every transaction (event) and calculate the current state by replaying them.
+
+### How Does This Work in Software?
+
+In event sourcing, you never update or delete data. Instead, you:
+
+1. **Write events** when something happens (UserRegistered, EmailChanged, OrderPlaced)
+2. **Store events** in an append-only log (events can't be changed or deleted)
+3. **Read events** and replay them to reconstruct the current state
+4. **Build projections** (read models) by processing events into formats optimized for querying
 
 ### The Traditional Approach vs Event Sourcing
 
@@ -71,24 +89,53 @@ Events for order-123:
 3. OrderShipped      { carrier: "FedEx", tracking: "123456789" }
 4. OrderDelivered    { deliveredAt: "2024-01-15T14:30:00Z" }
 
-// Replay events to get current state
-func (o *Order) Apply(events []Event) {
-    for _, event := range events {
-        switch e := event.(type) {
-        case OrderCreated:
-            o.Items = e.Items
-            o.Total = e.Total
-            o.Status = "created"
-        case PaymentProcessed:
-            o.Status = "paid"
-        case OrderShipped:
-            o.Status = "shipped"
-            o.TrackingNumber = e.Tracking
-        case OrderDelivered:
-            o.Status = "delivered"
-        }
-    }
-}
+// Replay events to get current state (pseudo-code)
+Order = empty order object
+
+FOR EACH event IN events:
+    IF event is OrderCreated:
+        Order.Items = event.items
+        Order.Total = event.total
+        Order.Status = "created"
+    ELSE IF event is PaymentProcessed:
+        Order.Status = "paid"
+    ELSE IF event is OrderShipped:
+        Order.Status = "shipped"
+        Order.TrackingNumber = event.tracking
+    ELSE IF event is OrderDelivered:
+        Order.Status = "delivered"
+
+// Result: Order.Status = "delivered"
+```
+
+### How to Read a List of Users?
+
+This is a common question for newcomers: "If everything is stored as events, how do I get a simple list of users?"
+
+The answer is **projections** (also called read models). You process events to build tables optimized for queries:
+
+**Events (append-only):**
+```
+1. UserCreated     { id: 1, email: "alice@example.com", name: "Alice" }
+2. UserCreated     { id: 2, email: "bob@example.com", name: "Bob" }
+3. EmailChanged    { id: 1, newEmail: "alice@newdomain.com" }
+4. UserDeactivated { id: 2, reason: "account closed" }
+```
+
+**Projection (users_view table):**
+```
+Process each event and update a regular database table:
+┌────┬───────────────────────┬───────┬──────────┐
+│ id │ email                 │ name  │ status   │
+├────┼───────────────────────┼───────┼──────────┤
+│ 1  │ alice@newdomain.com   │ Alice │ active   │
+│ 2  │ bob@example.com       │ Bob   │ inactive │
+└────┴───────────────────────┴───────┴──────────┘
+```
+
+Now you can query: `SELECT * FROM users_view WHERE status = 'active'` - fast and simple!
+
+**Key insight:** You keep both the events (for history and replaying) and projections (for fast queries). The projections are built by processing events and can be rebuilt at any time.
 ```
 
 ### Why Event Sourcing?
