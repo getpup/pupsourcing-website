@@ -1,0 +1,28 @@
+site_name: Pupsourcing
+site_description: Clean Event Sourcing library for Go
+site_author: getpup
+site_url: https://getpup.github.io/pupsourcing-website
+
+repo_name: getpup/pupsourcing
+repo_url: https://github.com/getpup/pupsourcing
+
+theme:
+  name: gitbook
+  
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Core Concepts: core-concepts.md
+  - Database Adapters: adapters.md
+  - Scaling & Projections: scaling.md
+  - Code Generation: eventmap-gen.md
+  - Deployment: deployment.md
+  - Observability: observability.md
+  - Industry Alignment: industry-alignment.md
+  - API Reference: api-reference.md
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true
