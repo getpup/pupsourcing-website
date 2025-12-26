@@ -91,7 +91,7 @@ func (p *UserCountProjection) Handle(ctx context.Context, event es.PersistedEven
     
     return nil
 }
-```
+```go
 
 **When to use:**
 - Read models for specific aggregates
@@ -147,7 +147,7 @@ ctx, cancel := context.WithCancel(context.Background())
 defer cancel()
 
 err := processor.Run(ctx, proj)
-```
+```sql
 
 ### Key Features
 

@@ -35,7 +35,7 @@ Manually mapping between these layers is error-prone and repetitive. This tool:
 
 ```bash
 go get -tool github.com/getpup/pupsourcing/cmd/eventmap-gen@latest
-```
+```go
 
 This allows you to use it with `go generate` directives:
 
@@ -47,7 +47,7 @@ This allows you to use it with `go generate` directives:
 
 ```go
 //go:generate go run github.com/getpup/pupsourcing/cmd/eventmap-gen -input ../../domain/events -output . -package persistence
-```
+```sql
 
 Or run the tool directly from the command line:
 
@@ -97,7 +97,7 @@ go run github.com/getpup/pupsourcing/cmd/eventmap-gen \
   -input internal/domain/events \
   -output internal/infrastructure/persistence/generated \
   -package generated
-```
+```go
 
 Or if you installed the tool:
 
@@ -142,7 +142,7 @@ func main() {
     persistedEvents := []es.PersistedEvent{/* from database */}
     domainEvents, err := generated.FromESEvents[any](persistedEvents)
 }
-```
+```go
 
 ## Versioned Events
 
@@ -193,7 +193,7 @@ type UserRegistered struct {
     Country   string `json:"country"`   // New field
     Timestamp int64  `json:"timestamp"` // New field
 }
-```
+```go
 
 ### Handling Historical Events
 
@@ -223,7 +223,7 @@ The tool generates:
 
 ```go
 func EventTypeOf(e any) (string, error)
-```
+```go
 
 Returns the event type string for a domain event. The event type is the struct name (without version).
 
@@ -251,7 +251,7 @@ The generic type parameter `T` allows for type-safe event slices. You can pass `
 
 ```go
 func FromESEvents[T any](events []es.PersistedEvent) ([]T, error)
-```
+```go
 
 Converts persisted events back to domain events using generics. Validates event type and version, then unmarshals JSON payload.
 
@@ -281,7 +281,7 @@ func (p *MyProjection) Handle(ctx context.Context, event es.PersistedEvent) erro
         return nil // Ignore unknown events
     }
 }
-```
+```go
 
 ### 5. Type-Safe Helpers
 
@@ -312,7 +312,7 @@ func WithCausationID(id string) Option
 func WithCorrelationID(id string) Option
 func WithTraceID(id string) Option
 func WithMetadata(metadata []byte) Option
-```
+```go
 
 Use options to inject metadata:
 
@@ -491,7 +491,7 @@ func (r *Repository) Load(ctx context.Context, id string) (*user.User, error) {
     // Reconstitute aggregate from events
     return user.FromEvents(id, domainEvents), nil
 }
-```
+```sql
 
 **Generate the mapping code:**
 
@@ -539,7 +539,7 @@ The recommended approach is to add `//go:generate` directives in your infrastruc
 
 ```go
 //go:generate go tool eventmap-gen -input ../../domain/events -output . -package persistence
-```
+```go
 
 **Why use `go tool`?**
 - Uses the module's local tool installation (via `go get -tool`)
@@ -557,7 +557,7 @@ Then run:
 
 ```bash
 go generate ./...
-```
+```go
 
 See the [Repository Adapter Example](#repository-adapter-example) for a complete integration pattern.
 
@@ -589,7 +589,7 @@ type OrderCreated struct {
     es.Event  // Don't embed ES types
     Amount float64
 }
-```
+```go
 
 ### 2. Use JSON Tags
 
@@ -638,7 +638,7 @@ esEvent, err := generated.ToUserRegisteredV1("Identity", "User", userID, event)
 
 // ⚠️ OK but less safe: Using []any for mixed event types
 esEvents, err := generated.ToESEvents("Identity", "User", userID, []any{event1, event2})
-```
+```go
 
 Using type-safe slices with generics provides better compile-time safety while maintaining flexibility.
 

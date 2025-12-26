@@ -130,7 +130,7 @@ for i := 0; i < 4; i++ {
 // Run all partitions concurrently
 r := runner.New()
 err := r.Run(ctx, runners)
-```
+```go
 
 **⚠️ Thread Safety Warning:** When using worker pools, all workers share the same projection instance. If your projection maintains state, it MUST be thread-safe:
 
@@ -192,7 +192,7 @@ func (HashPartitionStrategy) ShouldProcess(aggregateID string, partitionKey, tot
     partition := int(h.Sum32()) % totalPartitions
     return partition == partitionKey
 }
-```
+```go
 
 ### Custom Partitioning
 
@@ -232,7 +232,7 @@ Run each projection in its own process for better isolation:
 
 # Process 3
 ./myapp projection --name=order_summary
-```
+```go
 
 ### Pattern 2: Same Process
 
@@ -287,7 +287,7 @@ config.BatchSize = 1000
 
 // Smaller batches: lower latency, more transactions
 config.BatchSize = 10
-```
+```go
 
 **Guidelines:**
 - Fast projections: 500-1000
@@ -314,7 +314,7 @@ Checkpoint is updated after each batch. To reduce checkpoint writes:
 config.BatchSize = 500
 
 // But consider: larger batches = more reprocessing on crash
-```
+```sql
 
 ### Monitoring
 
@@ -388,7 +388,7 @@ for i := 0; i < 2; i++ {
 config := projection.DefaultProcessorConfig()
 processor := postgres.NewProcessor(db, store, &config)
 processor.Run(ctx, &ReportProjection{})
-```
+```go
 
 ### Pattern 3: Hot/Cold Separation
 
@@ -426,7 +426,7 @@ _, err := tx.ExecContext(ctx,
     "INSERT INTO processed_events (event_id) VALUES ($1)"+
     "ON CONFLICT (event_id) DO NOTHING",
     eventID)
-```
+```sql
 
 ## Advanced Topics
 
@@ -452,7 +452,7 @@ For long-lived aggregates, consider snapshots:
 // Read from snapshot position
 snapshotVersion := int64(1000)
 recentEvents, err := store.ReadAggregateStream(ctx, tx, "Identity", "User", aggregateID, &snapshotVersion, nil)
-```
+```go
 
 ### Error Handling
 
@@ -535,7 +535,7 @@ CREATE TABLE aggregate_heads_billing PARTITION OF aggregate_heads
     FOR VALUES IN ('Billing');
 CREATE TABLE aggregate_heads_analytics PARTITION OF aggregate_heads
     FOR VALUES IN ('Analytics');
-```
+```sql
 
 **Query Performance Improvement:**
 ```sql
@@ -565,7 +565,7 @@ CREATE INDEX idx_events_catalog_created_at
 
 CREATE TABLE aggregate_heads_catalog PARTITION OF aggregate_heads
     FOR VALUES IN ('Catalog');
-```
+```sql
 
 **⚠️ Important:** You must create a partition before writing events to that bounded context, otherwise PostgreSQL will reject the insert.
 
@@ -624,7 +624,7 @@ BEGIN
                        LPAD(i::text, 2, '0'), i);
     END LOOP;
 END $$;
-```
+```sql
 
 **Benefit:** Automatic load balancing across partitions without managing per-context partitions.
 
@@ -673,7 +673,7 @@ pg_dump -t events_analytics > analytics_archive.sql
 
 -- Drop or keep as standalone table
 DROP TABLE events_analytics;
-```
+```sql
 
 **Attach archived partition for historical queries:**
 ```sql
@@ -701,7 +701,7 @@ events := []es.Event{
 }
 
 result, err := store.Append(ctx, tx, es.NoStream(), events)
-```
+```sql
 
 **For ScopedProjection filtering:**
 ```go
