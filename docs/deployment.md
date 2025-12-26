@@ -320,7 +320,7 @@ spec:
 2. **Manual scaling**: Scale StatefulSet manually when needed:
    ```bash
    kubectl scale statefulset projection-workers --replicas=8
-   ```
+```
 3. **Vertical scaling**: Use VPA (Vertical Pod Autoscaler) to adjust resource requests/limits
 4. **Different projections, different scales**: Run fast projections without partitioning, slow projections with fixed partitions
 
