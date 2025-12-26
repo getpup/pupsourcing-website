@@ -136,7 +136,6 @@ Process each event and update a regular database table:
 Now you can query: `SELECT * FROM users_view WHERE status = 'active'` - fast and simple!
 
 **Key insight:** You keep both the events (for history and replaying) and projections (for fast queries). The projections are built by processing events and can be rebuilt at any time.
-```
 
 ### Why Event Sourcing?
 
