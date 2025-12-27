@@ -207,7 +207,7 @@ func toLogrusFields(keyvals []interface{}) logrus.Fields {
 }
 ```
 
-See the [with-logging example](../examples/with-logging/) for a complete working demonstration.
+See the [with-logging example](https://github.com/getpup/pupsourcing/tree/main/examples/with-logging) for a complete working demonstration.
 
 ## Distributed Tracing
 
@@ -335,64 +335,6 @@ This creates a clear chain of causality:
 - `CorrelationID` links all events in the same business transaction
 - `CausationID` shows which event triggered this one
 
-### OpenTelemetry Integration Example
-
-If you'd like to add distributed tracing spans to your event store operations, you can create a wrapper around the store that instruments the `Append` and read methods with OpenTelemetry. This allows you to:
-
-- Track the performance of event append operations
-- See which aggregates are being written to
-- Correlate event store operations with other parts of your distributed system
-- Identify bottlenecks in event processing
-
-Here's how to create a tracing wrapper:
-
-```go
-import (
-    "go.opentelemetry.io/otel"
-    "go.opentelemetry.io/otel/attribute"
-    "go.opentelemetry.io/otel/trace"
-)
-
-// TracingEventStore wraps a postgres.Store to add OpenTelemetry spans
-type TracingEventStore struct {
-    store  *postgres.Store
-    tracer trace.Tracer
-}
-
-func NewTracingEventStore(store *postgres.Store) *TracingEventStore {
-    return &TracingEventStore{
-        store:  store,
-        tracer: otel.Tracer("pupsourcing"),
-    }
-}
-
-// Append wraps the store's Append method with a span
-func (s *TracingEventStore) Append(ctx context.Context, tx es.DBTX, expectedVersion es.ExpectedVersion, events []es.Event) (es.AppendResult, error) {
-    // Start a new span for this append operation
-    ctx, span := s.tracer.Start(ctx, "eventstore.append",
-        trace.WithAttributes(
-            attribute.Int("event.count", len(events)),
-            attribute.String("aggregate.type", events[0].AggregateType),
-            attribute.String("aggregate.id", events[0].AggregateID),
-        ),
-    )
-    defer span.End()
-    
-    // Call the underlying store
-    result, err := s.store.Append(ctx, tx, expectedVersion, events)
-    if err != nil {
-        span.RecordError(err)
-        return es.AppendResult{}, err
-    }
-    
-    // Add the resulting positions as span attributes
-    span.SetAttributes(attribute.Int64Slice("positions", result.GlobalPositions))
-    return result, nil
-}
-```
-
-You can apply the same pattern to wrap `ReadEvents` and `ReadAggregateStream` methods, creating spans for read operations to track query performance and access patterns.
-
 ## Metrics
 
 For metrics integration with Prometheus and other monitoring systems, see the [Deployment Guide's Monitoring section](./deployment.md#monitoring).
@@ -477,5 +419,5 @@ Use logging to verify:
 ## Related Documentation
 
 - [Deployment Guide](./deployment.md) - Production deployment and monitoring
-- [Examples](../examples/with-logging/) - Complete logging example
+- [Examples](https://github.com/getpup/pupsourcing/tree/main/examples/with-logging) - Complete logging example
 - [API Reference](./api-reference.md) - Full API documentation

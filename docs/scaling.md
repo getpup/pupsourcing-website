@@ -103,7 +103,7 @@ PARTITION_KEY=2 TOTAL_PARTITIONS=4 ./myapp process-projections
 PARTITION_KEY=3 TOTAL_PARTITIONS=4 ./myapp process-projections
 ```
 
-See [partitioned example](../examples/partitioned/) for details.
+See [partitioned example](https://github.com/getpup/pupsourcing/tree/main/examples/partitioned) for details.
 
 #### Pattern 2: Worker Pool (Single Process)
 
@@ -164,7 +164,7 @@ func (p *UnsafeProjection) Handle(ctx context.Context, event es.PersistedEvent) 
 }
 ```
 
-See [worker-pool example](../examples/worker-pool/) for details.
+See [worker-pool example](https://github.com/getpup/pupsourcing/tree/main/examples/worker-pool) for details.
 
 ### When to Use Each Pattern
 
@@ -256,7 +256,7 @@ err := r.Run(ctx, []runner.ProjectionRunner{
 })
 ```
 
-See [multiple-projections example](../examples/multiple-projections/) for details.
+See [multiple-projections example](https://github.com/getpup/pupsourcing/tree/main/examples/multiple-projections) for details.
 
 ### Trade-offs
 
@@ -316,6 +316,31 @@ config.BatchSize = 500
 // But consider: larger batches = more reprocessing on crash
 ```
 
+### Poll Interval
+
+Controls how frequently the processor checks for new events:
+
+```go
+config := projection.DefaultProcessorConfig()
+config.PollInterval = 100 * time.Millisecond  // Default
+
+// Reduce database load with longer intervals
+config.PollInterval = 500 * time.Millisecond
+
+// Lower latency with shorter intervals (more database queries)
+config.PollInterval = 50 * time.Millisecond
+```
+
+**Trade-offs:**
+- **Shorter intervals** (< 100ms): Lower projection latency, higher database load
+- **Longer intervals** (> 100ms): Reduced database load, higher projection latency
+- **Default (100ms)**: Balanced for most use cases
+
+**When to adjust:**
+- Increase for high database load scenarios
+- Decrease for latency-sensitive projections
+- Monitor database connections and adjust accordingly
+
 ### Monitoring
 
 Track these metrics:
@@ -349,7 +374,7 @@ Day 10: 4 workers (each handles ~25%)
 Day 30: 8 workers (each handles ~12.5%)
 ```
 
-See [scaling example](../examples/scaling/) for a demonstration.
+See [scaling example](https://github.com/getpup/pupsourcing/tree/main/examples/scaling) for a demonstration.
 
 ### Pattern 2: Projection Prioritization
 
@@ -442,16 +467,6 @@ DELETE FROM projection_checkpoints WHERE projection_name = 'my_projection';
 TRUNCATE TABLE my_read_model;
 
 -- 3. Restart projection - it will reprocess all events
-```
-
-### Snapshot Support
-
-For long-lived aggregates, consider snapshots:
-
-```go
-// Read from snapshot position
-snapshotVersion := int64(1000)
-recentEvents, err := store.ReadAggregateStream(ctx, tx, "Identity", "User", aggregateID, &snapshotVersion, nil)
 ```
 
 ### Error Handling
@@ -615,15 +630,23 @@ CREATE TABLE events (
     -- columns as before
 ) PARTITION BY HASH (bounded_context, aggregate_type, aggregate_id);
 
--- PostgreSQL automatically distributes data across hash partitions
--- Create 16 partitions for even distribution using a loop
-DO $$
-BEGIN
-    FOR i IN 0..15 LOOP
-        EXECUTE format('CREATE TABLE events_%s PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER %s)', 
-                       LPAD(i::text, 2, '0'), i);
-    END LOOP;
-END $$;
+-- Create 16 partitions for even distribution
+CREATE TABLE events_00 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 0);
+CREATE TABLE events_01 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 1);
+CREATE TABLE events_02 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 2);
+CREATE TABLE events_03 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 3);
+CREATE TABLE events_04 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 4);
+CREATE TABLE events_05 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 5);
+CREATE TABLE events_06 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 6);
+CREATE TABLE events_07 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 7);
+CREATE TABLE events_08 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 8);
+CREATE TABLE events_09 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 9);
+CREATE TABLE events_10 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 10);
+CREATE TABLE events_11 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 11);
+CREATE TABLE events_12 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 12);
+CREATE TABLE events_13 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 13);
+CREATE TABLE events_14 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 14);
+CREATE TABLE events_15 PARTITION OF events FOR VALUES WITH (MODULUS 16, REMAINDER 15);
 ```
 
 **Benefit:** Automatic load balancing across partitions without managing per-context partitions.
@@ -754,6 +777,6 @@ WHERE bounded_context = 'Identity' AND aggregate_type = 'User';
 ## See Also
 
 - [Getting Started](./getting-started.md) - Basic setup
-- [Scaling Example](../examples/scaling/) - Dynamic scaling demonstration
+- [Scaling Example](https://github.com/getpup/pupsourcing/tree/main/examples/scaling) - Dynamic scaling demonstration
 - [Deployment Guide](./deployment.md) - Production deployment patterns
 - [Industry Alignment](./industry-alignment.md) - Comparison with other systems

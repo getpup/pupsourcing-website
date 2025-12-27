@@ -68,6 +68,11 @@ func (p *UserCountProjection) BoundedContexts() []string {
 
 func (p *UserCountProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
     // Only User events arrive here - no need to check EventType for other aggregates
+    
+    // Note: For type-safe event handling, use the eventmap-gen tool to generate
+    // conversion code. Example: e, err := FromESEvent(event)
+    // Then use a type switch for compile-time safety instead of string comparisons.
+    
     switch event.EventType {
     case "UserCreated":
         var payload UserCreated

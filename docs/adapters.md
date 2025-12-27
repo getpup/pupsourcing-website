@@ -25,8 +25,10 @@ This design maintains database-agnostic application code and ensures consistent 
 ## PostgreSQL Adapter
 
 **Package:** `github.com/getpup/pupsourcing/es/adapters/postgres`  
-**Driver:** `github.com/lib/pq`  
+**Driver:** `github.com/lib/pq` (or `github.com/jackc/pgx/v5/stdlib` for pgx benefits)  
 **Status:** Production-ready ✅
+
+**Note on drivers:** While the adapter is tested with `github.com/lib/pq`, you can also use the `pgx` driver (`github.com/jackc/pgx/v5/stdlib`) to take advantage of its performance improvements and additional features. Both drivers work with pupsourcing's PostgreSQL adapter.
 
 ### Key Features
 
@@ -46,13 +48,6 @@ This design maintains database-agnostic application code and ensures consistent 
 | `payload` | `BYTEA` | Binary event data |
 | `metadata` | `JSONB` | Queryable structured metadata |
 | `created_at` | `TIMESTAMPTZ` | Timezone-aware timestamp |
-
-### Advanced Capabilities
-
-- Full-text search on JSONB metadata
-- Partial and expression indexes
-- LISTEN/NOTIFY for real-time notifications
-- Row-level security for multi-tenancy
 
 ### Ideal For
 
@@ -186,6 +181,25 @@ tx.Commit()
 ```
 
 #### Migration Generation
+
+The recommended approach is using `go generate` to generate migrations:
+
+```go
+//go:generate go run github.com/getpup/pupsourcing/cmd/migrate-gen -adapter sqlite -output migrations
+
+package main
+
+func main() {
+    // Your application code
+}
+```
+
+Then run:
+```bash
+go generate ./...
+```
+
+Alternatively, generate migrations programmatically:
 
 ```go
 import "github.com/getpup/pupsourcing/es/migrations"
@@ -383,11 +397,11 @@ When migrating between adapters:
 
 ## Examples
 
-Complete working examples for each adapter are available in the `examples/` directory:
+Complete working examples for each adapter are available in the [pupsourcing repository](https://github.com/getpup/pupsourcing/tree/main/examples):
 
-- **PostgreSQL**: `examples/basic/` - Full-featured example with projections
-- **SQLite**: `examples/sqlite-basic/` - Embedded database example
-- **MySQL**: `examples/mysql-basic/` - MySQL/MariaDB example
+- **PostgreSQL**: [examples/basic/](https://github.com/getpup/pupsourcing/tree/main/examples/basic) - Full-featured example with projections
+- **SQLite**: [examples/sqlite-basic/](https://github.com/getpup/pupsourcing/tree/main/examples/sqlite-basic) - Embedded database example
+- **MySQL**: [examples/mysql-basic/](https://github.com/getpup/pupsourcing/tree/main/examples/mysql-basic) - MySQL/MariaDB example
 
 ## Contributing
 

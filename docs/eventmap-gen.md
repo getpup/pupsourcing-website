@@ -303,7 +303,7 @@ func FromUserRegisteredV1(
 ) (v1.UserRegistered, error)
 ```
 
-### 6. Options Pattern
+### 6. Observability and Metadata Options
 
 ```go
 type Option func(*eventOptions)
@@ -591,18 +591,7 @@ type OrderCreated struct {
 }
 ```
 
-### 2. Use JSON Tags
-
-Always use JSON tags for explicit field names:
-
-```go
-type UserRegistered struct {
-    Email string `json:"email"` // ✅ Explicit
-    Name  string                // ❌ Will use "Name" by default
-}
-```
-
-### 3. Version When Schema Changes
+### 2. Version When Schema Changes
 
 Create a new version when:
 - Adding required fields
@@ -612,7 +601,7 @@ Create a new version when:
 
 Optional fields can sometimes be added to existing versions using `omitempty`.
 
-### 4. Don't Delete Old Versions
+### 3. Don't Delete Old Versions
 
 Old versions must remain for replaying historical events:
 
@@ -624,7 +613,7 @@ events/
     user_registered.go  # New version
 ```
 
-### 5. Prefer Type-Safe Generic Calls
+### 4. Prefer Type-Safe Generic Calls
 
 The generic `ToESEvents` function now supports type-safe slices:
 
@@ -642,7 +631,7 @@ esEvents, err := generated.ToESEvents("Identity", "User", userID, []any{event1, 
 
 Using type-safe slices with generics provides better compile-time safety while maintaining flexibility.
 
-### 6. Document Breaking Changes
+### 5. Document Breaking Changes
 
 Add comments when introducing breaking schema changes:
 

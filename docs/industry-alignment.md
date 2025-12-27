@@ -1,86 +1,27 @@
 # Industry Alignment - Comparison with Other Event Sourcing Systems
 
-This document explains pupsourcing concepts in terms of other popular event sourcing and event streaming systems, helping users migrate or understand the library from different perspectives.
+This document explains pupsourcing concepts in terms of other popular event sourcing systems, helping users migrate or understand the library from different perspectives.
 
 ## Table of Contents
 
 - [Quick Reference](#quick-reference)
-- [Apache Kafka](#apache-kafka)
 - [EventStoreDB](#eventstoredb)
 - [Axon Framework (Java)](#axon-framework-java)
 - [Marten (C#/.NET)](#marten-cnet)
 - [Comparison Summary](#comparison-summary)
-- [Terminology Translation](#terminology-translation)
 - [See Also](#see-also)
 
 ## Quick Reference
 
-| pupsourcing | Kafka | EventStoreDB | Axon Framework |
-|-------------|-------|--------------|----------------|
-| Event | Message | Event | Event |
-| GlobalPosition | Offset | Position | Sequence Number |
-| Projection | Consumer | Subscription | Tracking Event Processor |
-| PartitionKey | Partition | - | Segment |
-| Checkpoint | Consumer Offset | Checkpoint | Token |
-| AggregateID | Key | Stream ID | Aggregate Identifier |
-| EventStore | Topic | Stream | Event Store |
-
-## Apache Kafka
-
-### Conceptual Mapping
-
-pupsourcing projections work like **Kafka consumer groups**:
-
-| Kafka Concept | pupsourcing Equivalent |
-|---------------|------------------------|
-| Topic | Event Store (single, global log) |
-| Partition | Projection partition (based on aggregate ID) |
-| Consumer Group | Projection name |
-| Consumer | Worker with specific `PartitionKey` |
-| Offset | `GlobalPosition` in checkpoint |
-| Message Key | `AggregateID` |
-| Message Value | Event `Payload` |
-
-### Similarities
-
-```go
-// Kafka consumer group
-consumer := kafka.NewConsumer(&kafka.ConfigMap{
-    "group.id": "my-consumer-group",
-    "partition.assignment.strategy": "range",
-})
-
-// pupsourcing projection (similar concept)
-config := projection.ProcessorConfig{
-    PartitionKey: 0,           // Like consumer instance
-    TotalPartitions: 4,        // Like partition count
-}
-processor := projection.NewProcessor(db, store, &config)
-```
-
-### Key Differences
-
-| Aspect | Kafka | pupsourcing |
-|--------|-------|-------------|
-| **Partitioning** | Physical topic partitions | Logical (hash-based) |
-| **Coordination** | Zookeeper/Raft | Database checkpoints |
-| **Rebalancing** | Automatic | Manual (add/remove workers) |
-| **Ordering** | Per partition | Per aggregate |
-| **Storage** | Log files | PostgreSQL |
-
-### When to Use Each
-
-**Use Kafka when:**
-- High throughput (millions of events/sec)
-- Multiple heterogeneous consumers
-- Event streaming beyond event sourcing
-- Existing Kafka infrastructure
-
-**Use pupsourcing when:**
-- Simpler deployment (just PostgreSQL)
-- Integrated with existing PostgreSQL application
-- Event sourcing is primary use case
-- Don't need Kafka-level throughput
+| pupsourcing | EventStoreDB | Axon Framework |
+|-------------|--------------|----------------|
+| Event | Event | Event |
+| GlobalPosition | Position | Sequence Number |
+| Projection | Subscription | Tracking Event Processor |
+| PartitionKey | - | Segment |
+| Checkpoint | Checkpoint | Token |
+| AggregateID | Stream ID | Aggregate Identifier |
+| EventStore | Stream | Event Store |
 
 ## EventStoreDB
 
@@ -277,45 +218,8 @@ Choose pupsourcing when you want:
 ✅ Go-native implementation
 ✅ Simple horizontal scaling
 
-Consider alternatives when you need:
-
-❌ Multi-language support
-❌ Built-in projections language
-❌ Automatic cluster coordination
-❌ Very high throughput (>100K events/sec)
-❌ Multiple transport mechanisms
-❌ Complex distributed sagas
-
-## Terminology Translation
-
-### For Kafka Users
-
-- **Topic** = Your event store (single, ordered log)
-- **Consumer Group** = Projection name
-- **Consumer Instance** = Worker with partition key
-- **Offset** = GlobalPosition checkpoint
-- **Key** = AggregateID
-- **Partition** = Logical partition (hash-based)
-
-### For EventStoreDB Users
-
-- **$all Stream** = Event store (global log)
-- **Stream** = Aggregate events (filter by type + ID)
-- **Persistent Subscription** = Projection with checkpoint
-- **Position** = GlobalPosition
-- **Event** = Event
-
-### For Axon Users
-
-- **Event Store** = Event store
-- **Tracking Processor** = Projection processor
-- **Token Store** = Checkpoint table
-- **Segment** = Partition key
-- **@EventHandler** = Projection.Handle()
-- **Processing Group** = Projection name
-
 ## See Also
 
 - [Getting Started](./getting-started.md) - Quick start guide
 - [Scaling Guide](./scaling.md) - Horizontal scaling patterns
-- [Examples](../examples/) - Working code examples
+- [Examples](https://github.com/getpup/pupsourcing/tree/main/examples) - Working code examples
