@@ -16,3 +16,36 @@ function toggleTheme() {
   html.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
 }
+
+function toggleMobileMenu() {
+  const nav = document.getElementById('mobileNav');
+  if (nav) {
+    nav.classList.toggle('active');
+  }
+}
+
+// Close mobile menu when clicking on a link
+document.addEventListener('DOMContentLoaded', function() {
+  const mobileNavLinks = document.querySelectorAll('#mobileNav a');
+  mobileNavLinks.forEach(link => {
+    link.addEventListener('click', function() {
+      const nav = document.getElementById('mobileNav');
+      if (nav && nav.classList.contains('active')) {
+        nav.classList.remove('active');
+      }
+    });
+  });
+
+  // Close menu when clicking outside
+  document.addEventListener('click', function(event) {
+    const nav = document.getElementById('mobileNav');
+    const menuToggle = document.querySelector('.mobile-menu-toggle');
+    
+    if (nav && menuToggle && 
+        !nav.contains(event.target) && 
+        !menuToggle.contains(event.target) &&
+        nav.classList.contains('active')) {
+      nav.classList.remove('active');
+    }
+  });
+});

@@ -30,12 +30,40 @@
           <span>{{ config.site_name }}</span>
         </a>
       </div>
-      <nav class="nav">
+      <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">☰</button>
+      <nav class="nav desktop-nav" id="mainNav">
         {% for nav_item in nav %}
           <a href="{{ nav_item.url|url }}" {% if nav_item.active %}class="active"{% endif %}>{{ nav_item.title }}</a>
         {% endfor %}
         {% if config.repo_url %}
           <a href="{{ config.repo_url }}">GitHub</a>
+        {% endif %}
+      </nav>
+      <!-- Mobile combined menu -->
+      <nav class="nav mobile-nav" id="mobileNav">
+        {% for nav_item in nav %}
+          <a href="{{ nav_item.url|url }}" {% if nav_item.active %}class="active"{% endif %}>{{ nav_item.title }}</a>
+        {% endfor %}
+        {% if config.repo_url %}
+          <a href="{{ config.repo_url }}">GitHub</a>
+        {% endif %}
+        {% if not page.is_homepage %}
+        <!-- Include docs navigation in mobile menu -->
+        <div class="mobile-docs-divider"></div>
+        <div class="mobile-docs-section">
+          <div class="mobile-docs-title">Documentation</div>
+          <a href="{{ 'docs-overview/'|url }}" {% if page.url == 'docs-overview/' %}class="active"{% endif %}>Overview</a>
+          <a href="{{ 'getting-started/'|url }}" {% if page.url == 'getting-started/' %}class="active"{% endif %}>Getting Started</a>
+          <a href="{{ 'core-concepts/'|url }}" {% if page.url == 'core-concepts/' %}class="active"{% endif %}>Core Concepts</a>
+          <a href="{{ 'projections/'|url }}" {% if page.url == 'projections/' %}class="active"{% endif %}>Projections</a>
+          <a href="{{ 'adapters/'|url }}" {% if page.url == 'adapters/' %}class="active"{% endif %}>Supported Databases</a>
+          <a href="{{ 'eventmap-gen/'|url }}" {% if page.url == 'eventmap-gen/' %}class="active"{% endif %}>Code Generation</a>
+          <a href="{{ 'deployment/'|url }}" {% if page.url == 'deployment/' %}class="active"{% endif %}>Deployment</a>
+          <a href="{{ 'scaling/'|url }}" {% if page.url == 'scaling/' %}class="active"{% endif %}>Scaling</a>
+          <a href="{{ 'observability/'|url }}" {% if page.url == 'observability/' %}class="active"{% endif %}>Observability</a>
+          <a href="{{ 'industry-alignment/'|url }}" {% if page.url == 'industry-alignment/' %}class="active"{% endif %}>Industry Alignment</a>
+          <a href="{{ 'api-reference/'|url }}" {% if page.url == 'api-reference/' %}class="active"{% endif %}>API Reference</a>
+        </div>
         {% endif %}
       </nav>
     </div>
@@ -65,7 +93,8 @@
     </article>
     {% else %}
     <div class="docs-layout">
-      <aside class="sidebar">
+      <!-- Desktop sidebar - visible only on desktop -->
+      <aside class="sidebar desktop-sidebar" id="docsSidebar">
         <nav class="sidebar-nav">
           <div class="nav-section">
             <div class="nav-section-title">Docs</div>

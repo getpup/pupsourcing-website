@@ -34,21 +34,23 @@ In event sourcing, you never update or delete data. Instead, you:
 
 **Traditional CRUD - Updates destroy history:**
 
-```sql
+```
 User table:
 ┌────┬─────────────────────┬───────┬────────┐
 │ id │ email               │ name  │ status │
 ├────┼─────────────────────┼───────┼────────┤
 │ 1  │ alice@example.com   │ Alice │ active │
 └────┴─────────────────────┴───────┴────────┘
+```
 
+```sql
 -- UPDATE loses history - no way to know what changed
 UPDATE users SET email='new@email.com' WHERE id=1;
 ```
 
 **Event Sourcing - Preserves complete history:**
 
-```go
+```
 Events (append-only log):
 ┌───────────────────────────────────────────────────────┐
 │ 1. UserCreated                                        │

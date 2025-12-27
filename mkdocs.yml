@@ -9,14 +9,15 @@ repo_url: https://github.com/getpup/pupsourcing
 theme:
   name: null
   custom_dir: custom_theme
-  
+
 nav:
   - Home: index.md
   - Docs: docs-overview.md
   - About: about.md
 
 markdown_extensions:
-  - admonition
-  - codehilite
-  - toc:
-      permalink: true
+  admonition: { }
+  codehilite:
+    guess_lang: false
+  toc:
+    permalink: true
