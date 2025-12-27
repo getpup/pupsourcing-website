@@ -30,7 +30,8 @@
           <span>{{ config.site_name }}</span>
         </a>
       </div>
-      <nav class="nav">
+      <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">☰</button>
+      <nav class="nav" id="mainNav">
         {% for nav_item in nav %}
           <a href="{{ nav_item.url|url }}" {% if nav_item.active %}class="active"{% endif %}>{{ nav_item.title }}</a>
         {% endfor %}
@@ -65,7 +66,9 @@
     </article>
     {% else %}
     <div class="docs-layout">
-      <aside class="sidebar">
+      <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+      <button class="mobile-sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">📖 Menu</button>
+      <aside class="sidebar" id="docsSidebar">
         <nav class="sidebar-nav">
           <div class="nav-section">
             <div class="nav-section-title">Docs</div>
