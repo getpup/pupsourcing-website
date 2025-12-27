@@ -63,7 +63,7 @@ Historical state = Apply events up to specific point in time
 - Learning curve for team members
 - Projections must handle idempotency
 - Eventual consistency in read models
-- Storage growth over time (mitigated by snapshots)
+- Storage growth over time
 - Schema evolution for immutable events
 
 **When to Use:**
@@ -219,9 +219,7 @@ Example:
 {
     "user_id": "123",
     "old_email": "alice@old.com",
-    "new_email": "alice@new.com",
-    "changed_by": "user_456",
-    "reason": "user requested"
+    "new_email": "alice@new.com"
 }
 
 // ❌ Bad: Missing context
@@ -476,45 +474,55 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
 ```
 
 **Idempotent approach 2: Use upsert semantics**
+
+For type-safe event handling, use the [eventmap-gen](./eventmap-gen.md) tool to generate conversion functions:
+
 ```go
 func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error {
     if event.EventType != "UserCreated" {
         return nil
     }
     
-    var payload struct {
-        Email string `json:"email"`
-        Name  string `json:"name"`
-    }
-    if err := json.Unmarshal(event.Payload, &payload); err != nil {
+    // Use generated code for type-safe conversion
+    domainEvent, err := generated.FromESEvent(event)
+    if err != nil {
         return err
+    }
+    
+    userCreated, ok := domainEvent.(events.UserCreated)
+    if !ok {
+        return fmt.Errorf("unexpected event type")
     }
     
     // Use INSERT ... ON CONFLICT to make this idempotent
     // If aggregate_id already exists, update with the same values
-    _, err := tx.ExecContext(ctx,
+    _, err = tx.ExecContext(ctx,
         `INSERT INTO users (aggregate_id, email, name, created_at) 
          VALUES ($1, $2, $3, $4)
          ON CONFLICT (aggregate_id) 
          DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name`,
-        event.AggregateID, payload.Email, payload.Name, event.CreatedAt)
+        event.AggregateID, userCreated.Email, userCreated.Name, event.CreatedAt)
     return err
 }
 ```
 
 **Idempotent approach 3: Use event position as version**
+
 ```go
 func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error {
     if event.EventType != "InventoryAdjusted" {
         return nil
     }
     
-    var payload struct {
-        ProductID string `json:"product_id"`
-        Quantity  int    `json:"quantity"`
-    }
-    if err := json.Unmarshal(event.Payload, &payload); err != nil {
+    // Use generated code for type-safe conversion
+    domainEvent, err := generated.FromESEvent(event)
+    if err != nil {
         return err
+    }
+    
+    inventoryAdjusted, ok := domainEvent.(events.InventoryAdjusted)
+    if !ok {
+        return fmt.Errorf("unexpected event type")
     }
     
     // Only apply if this event's position is greater than last processed position for this product
@@ -522,7 +530,7 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
         `UPDATE inventory 
          SET quantity = quantity + $1, last_event_position = $2
          WHERE product_id = $3 AND (last_event_position IS NULL OR last_event_position < $2)`,
-        payload.Quantity, event.GlobalPosition, payload.ProductID)
+        inventoryAdjusted.Quantity, event.GlobalPosition, inventoryAdjusted.ProductID)
     if err != nil {
         return err
     }
@@ -650,43 +658,129 @@ This approach keeps infrastructure requirements minimal while providing reliable
 
 Write events and read them back within the same transaction for immediate consistency.
 
-```go
-// Write event
-tx, _ := db.BeginTx(ctx, nil)
-aggregateID := uuid.New().String()
-events := []es.Event{
-    {
-        BoundedContext: "Identity",
-        AggregateType:  "User",
-        AggregateID:    aggregateID,
-        EventType:      "UserCreated",
-        EventVersion:   1,
-        Payload:        []byte(`{"email":"user@example.com"}`),
-        Metadata:       []byte(`{}`),
-        EventID:        uuid.New(),
-        CreatedAt:      time.Now(),
-    },
-}
-store.Append(ctx, tx, es.NoStream(), events)
+**Why this is useful:** 
+- Enables strong consistency within a single operation
+- Allows validation of command results before committing
+- Useful for synchronous command handlers that need to return aggregate state
+- Avoids eventual consistency delays when immediate feedback is required
 
-// Read immediately within same transaction
-aggregate, _ := store.ReadAggregateStream(ctx, tx, "Identity", "User", aggregateID, nil, nil)
-tx.Commit()
+**When to use this:**
+- Command handlers that return the updated aggregate state
+- Workflows requiring immediate validation of business rules
+- APIs that need to return complete state after mutations
+- Testing scenarios where you need to verify event results immediately
+
+**Real-world example:**
+In an e-commerce system, when a user places an order, you might want to return the order confirmation details immediately:
+
+```go
+// Command handler that returns order details
+func PlaceOrder(ctx context.Context, db *sql.DB, store *postgres.Store, items []Item) (*Order, error) {
+    tx, _ := db.BeginTx(ctx, nil)
+    defer tx.Rollback()
+    
+    orderID := uuid.New().String()
+    
+    // Write order events
+    events := []es.Event{
+        {
+            BoundedContext: "Orders",
+            AggregateType:  "Order",
+            AggregateID:    orderID,
+            EventType:      "OrderCreated",
+            EventVersion:   1,
+            Payload:        marshalOrderCreated(items),
+            Metadata:       []byte(`{}`),
+            EventID:        uuid.New(),
+            CreatedAt:      time.Now(),
+        },
+    }
+    
+    _, err := store.Append(ctx, tx, es.NoStream(), events)
+    if err != nil {
+        return nil, err
+    }
+    
+    // Read back immediately in same transaction
+    stream, err := store.ReadAggregateStream(ctx, tx, "Orders", "Order", orderID, nil, nil)
+    if err != nil {
+        return nil, err
+    }
+    
+    // Reconstruct order from events
+    order := reconstructOrder(stream.Events)
+    
+    // Commit and return complete order details
+    if err := tx.Commit(); err != nil {
+        return nil, err
+    }
+    
+    return order, nil
+}
 ```
 
 ### Pattern 2: Event Upcasting
 
-Handle different event versions:
+Handle different event versions by converting older event formats to newer ones during processing.
+
+**Why this is useful:**
+- Enables schema evolution without data migration
+- Maintains backward compatibility with historical events
+- Allows business logic to work with a single current version
+- Simplifies projection and aggregate reconstruction code
+
+**When to use this:**
+- Event schemas have evolved over time (added/removed/renamed fields)
+- You want to normalize handling of different event versions
+- Complex projections that would otherwise need version-specific logic
+- Aggregate reconstruction should use consistent event structure
+
+**Real-world example:**
+A user registration event evolved to include additional fields. With [eventmap-gen](./eventmap-gen.md), the generated code handles versioning automatically:
 
 ```go
-func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error {
-    switch event.EventType {
-    case "UserCreated":
-        switch event.EventVersion {
-        case 1:
-            return p.handleUserCreatedV1(event)
-        case 2:
-            return p.handleUserCreatedV2(event)
+// Domain events (in your events/v1 and events/v2 directories)
+// events/v1/user_registered.go
+package v1
+
+type UserRegistered struct {
+    Email string
+    Name  string
+}
+
+// events/v2/user_registered.go
+package v2
+
+type UserRegistered struct {
+    Email   string
+    Name    string
+    Country string
+}
+
+// Use in projection - eventmap-gen handles version conversion
+func (p *UserProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
+    if event.EventType == "UserRegistered" {
+        // Use generated FromESEvent to get the right version
+        domainEvent, err := generated.FromESEvent(event)
+        if err != nil {
+            return err
+        }
+        
+        // Type switch on the domain event
+        switch e := domainEvent.(type) {
+        case v1.UserRegistered:
+            // Handle v1 with default
+            _, err = tx.ExecContext(ctx,
+                "INSERT INTO users (aggregate_id, email, name, country) VALUES ($1, $2, $3, $4)",
+                event.AggregateID, e.Email, e.Name, "Unknown")
+            return err
+            
+        case v2.UserRegistered:
+            // Handle v2 directly
+            _, err = tx.ExecContext(ctx,
+                "INSERT INTO users (aggregate_id, email, name, country) VALUES ($1, $2, $3, $4)",
+                event.AggregateID, e.Email, e.Name, e.Country)
+            return err
         }
     }
     return nil
@@ -697,37 +791,75 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
 
 Rebuild aggregate state from its event history.
 
+**Domain Layer (Pure Business Logic):**
+
+The domain aggregate should only work with domain events, not infrastructure types:
+
 ```go
-type User struct {
-    ID     string
-    Email  string
-    Name   string
-    Active bool
+// Domain event interface - all domain events implement this
+type Event interface {
+    isEvent() // Marker method
 }
 
-func (u *User) Apply(event es.PersistedEvent) {
-    switch event.EventType {
-    case "UserCreated":
-        var payload struct {
-            Email string `json:"email"`
-            Name  string `json:"name"`
-        }
-        json.Unmarshal(event.Payload, &payload)
-        u.Email = payload.Email
-        u.Name = payload.Name
-        u.Active = true
-    case "UserDeactivated":
-        u.Active = false
-    case "EmailChanged":
-        var payload struct {
-            NewEmail string `json:"new_email"`
-        }
-        json.Unmarshal(event.Payload, &payload)
-        u.Email = payload.NewEmail
+// Domain events (no infrastructure dependencies)
+type UserCreated struct {
+    Email string
+    Name  string
+}
+
+func (UserCreated) isEvent() {}
+
+type UserDeactivated struct {
+    Reason string
+}
+
+func (UserDeactivated) isEvent() {}
+
+type EmailChanged struct {
+    NewEmail string
+}
+
+func (EmailChanged) isEvent() {}
+
+// User aggregate in domain layer
+type User struct {
+    id     string
+    email  string
+    name   string
+    active bool
+}
+
+// Apply accepts domain events only (not es.PersistedEvent)
+func (u *User) Apply(event Event) {
+    switch e := event.(type) {
+    case UserCreated:
+        u.email = e.Email
+        u.name = e.Name
+        u.active = true
+    
+    case UserDeactivated:
+        u.active = false
+    
+    case EmailChanged:
+        u.email = e.NewEmail
     }
 }
+```
 
-func LoadUser(ctx context.Context, tx es.DBTX, store store.AggregateStreamReader, id string) (*User, error) {
+**Infrastructure Layer (Persistence):**
+
+The infrastructure layer converts persisted events to domain events:
+
+```go
+// Infrastructure code (uses eventmap-gen generated code)
+import (
+    "myapp/internal/domain/user"
+    "myapp/internal/domain/user/events/v1"
+    "myapp/internal/infrastructure/persistence/generated"
+)
+
+func LoadUser(ctx context.Context, tx es.DBTX, store store.AggregateStreamReader, id string) (*user.User, error) {
+    // Read persisted events from store
     stream, err := store.ReadAggregateStream(ctx, tx, "Identity", "User", id, nil, nil)
     if err != nil {
         return nil, err
@@ -736,17 +868,33 @@ func LoadUser(ctx context.Context, tx es.DBTX, store store.AggregateStreamReader
         return nil, fmt.Errorf("user not found: %s", id)
     }
     
-    user := &User{ID: id}
-    for _, event := range stream.Events {
-        user.Apply(event)
+    // Convert infrastructure events to domain events using generated code
+    // This keeps the domain layer pure
+    domainEvents, err := generated.FromESEvents[user.Event](stream.Events)
+    if err != nil {
+        return nil, err
     }
-    return user, nil
+    
+    // Reconstitute aggregate from domain events
+    u := user.NewUser(id)
+    for _, event := range domainEvents {
+        u.Apply(event)  // Works with domain events, not es.PersistedEvent
+    }
+    
+    return u, nil
 }
 ```
+
+**Key principles:**
+- **Domain layer**: Pure business logic, works only with domain events
+- **Infrastructure layer**: Handles conversion between es.PersistedEvent and domain events  
+- **No infrastructure creep**: Aggregate never depends on pupsourcing types
+- **eventmap-gen helps**: Generated code handles conversion automatically
+- **Type safety**: Use `FromESEvents[YourEventInterface]` with Go generics
 
 ## See Also
 
 - [Getting Started](./getting-started.md) - Setup and first steps
 - [Scaling Guide](./scaling.md) - Production patterns
 - [API Reference](./api-reference.md) - Complete API docs
-- [Examples](../examples/) - Working code examples
+- [Examples](https://github.com/getpup/pupsourcing/tree/master/examples) - Working code examples

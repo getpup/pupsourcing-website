@@ -91,7 +91,7 @@ Events for order-123:
 3. OrderShipped      { carrier: "FedEx", tracking: "123456789" }
 4. OrderDelivered    { deliveredAt: "2024-01-15T14:30:00Z" }
 
-// Replay events to get current state (pseudo-code)
+// Replay events to get current state
 Order = empty order object
 
 FOR EACH event IN events:
@@ -107,35 +107,42 @@ FOR EACH event IN events:
     ELSE IF event is OrderDelivered:
         Order.Status = "delivered"
 
-// Result: Order.Status = "delivered"
+// Result: Final state
+Order {
+    Items: [...],
+    Total: 99.99,
+    Status: "delivered",
+    TrackingNumber: "123456789"
+}
 ```
 
-### How to Read a List of Users?
+### How to Query Orders?
 
-This is a common question for newcomers: "If everything is stored as events, how do I get a simple list of users?"
+This is a common question for newcomers: "If everything is stored as events, how do I get a simple list of orders?"
 
 The answer is **projections** (also called read models). You process events to build tables optimized for queries:
 
 **Events (append-only):**
 ```
-1. UserCreated     { id: 1, email: "alice@example.com", name: "Alice" }
-2. UserCreated     { id: 2, email: "bob@example.com", name: "Bob" }
-3. EmailChanged    { id: 1, newEmail: "alice@newdomain.com" }
-4. UserDeactivated { id: 2, reason: "account closed" }
+1. OrderCreated      { id: 1, items: [...], total: 99.99 }
+2. OrderCreated      { id: 2, items: [...], total: 49.99 }
+3. PaymentProcessed  { id: 1, method: "credit_card" }
+4. OrderShipped      { id: 1, tracking: "123456" }
+5. OrderDelivered    { id: 2 }
 ```
 
-**Projection (users_view table):**
+**Projection (orders_view table):**
 ```
 Process each event and update a regular database table:
-┌────┬───────────────────────┬───────┬──────────┐
-│ id │ email                 │ name  │ status   │
-├────┼───────────────────────┼───────┼──────────┤
-│ 1  │ alice@newdomain.com   │ Alice │ active   │
-│ 2  │ bob@example.com       │ Bob   │ inactive │
-└────┴───────────────────────┴───────┴──────────┘
+┌────┬────────┬──────────────┬────────┐
+│ id │ total  │ tracking     │ status │
+├────┼────────┼──────────────┼────────┤
+│ 1  │ 99.99  │ 123456       │ shipped│
+│ 2  │ 49.99  │ -            │ deliver│
+└────┴────────┴──────────────┴────────┘
 ```
 
-Now you can query: `SELECT * FROM users_view WHERE status = 'active'` - fast and simple!
+Now you can query: `SELECT * FROM orders_view WHERE status = 'shipped'` - fast and simple!
 
 **Key insight:** You keep both the events (for history and replaying) and projections (for fast queries). The projections are built by processing events and can be rebuilt at any time.
 

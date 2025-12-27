@@ -28,7 +28,7 @@ Choose a database driver:
 # PostgreSQL (recommended for production)
 go get github.com/lib/pq
 
-# SQLite (ideal for development/testing)
+# SQLite (suitable for development/testing)
 go get modernc.org/sqlite
 
 # MySQL/MariaDB
@@ -167,11 +167,12 @@ Create a scoped projection that only receives User events:
 
 ```go
 import (
+    "database/sql"
     "github.com/getpup/pupsourcing/es/projection"
 )
 
 type UserCountProjection struct {
-    count int
+    db *sql.DB
 }
 
 func (p *UserCountProjection) Name() string {
@@ -188,10 +189,24 @@ func (p *UserCountProjection) BoundedContexts() []string {
     return []string{"Identity"}
 }
 
-func (p *UserCountProjection) Handle(_ context.Context, event es.PersistedEvent) error {
+func (p *UserCountProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
     if event.EventType == "UserCreated" {
-        p.count++
-        fmt.Printf("User count: %d\n", p.count)
+        // Store count in database, not in memory
+        // This makes the projection stateless and safe for concurrent workers
+        _, err := p.db.ExecContext(ctx,
+            "INSERT INTO user_stats (metric, value) VALUES ('total_users', 1) "+
+            "ON CONFLICT (metric) DO UPDATE SET value = user_stats.value + 1")
+        if err != nil {
+            return err
+        }
+        
+        // Query current count for logging
+        var count int
+        err = p.db.QueryRowContext(ctx, 
+            "SELECT value FROM user_stats WHERE metric = 'total_users'").Scan(&count)
+        if err == nil {
+            fmt.Printf("User count: %d\n", count)
+        }
     }
     return nil
 }
@@ -216,14 +231,14 @@ err := processor.Run(ctx, proj)
 
 ## Complete Example
 
-See the [complete working example](../examples/single-worker/main.go) that ties everything together.
+See the [complete working example](https://github.com/getpup/pupsourcing/tree/master/examples/single-worker/main.go) that ties everything together.
 
 ## Next Steps
 
 - Learn [Core Concepts](./core-concepts.md) to understand event sourcing with pupsourcing
 - Explore [Projections & Scaling](./scaling.md) to build read models
 - See [Scaling Guide](./scaling.md) for production deployments
-- Browse [Examples](../examples/) for more patterns
+- Browse [Examples](https://github.com/getpup/pupsourcing/tree/master/examples) for more patterns
 
 ## Common Patterns
 
@@ -329,4 +344,4 @@ SELECT * FROM projection_checkpoints WHERE projection_name = 'your_projection';
 
 - [Core Concepts](./core-concepts.md) - Understand the fundamentals
 - [API Reference](./api-reference.md) - Complete API documentation
-- [Examples](../examples/) - Working code examples
+- [Examples](https://github.com/getpup/pupsourcing/tree/master/examples) - Working code examples
