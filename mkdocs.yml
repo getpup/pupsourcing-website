@@ -17,6 +17,7 @@ nav:
 
 markdown_extensions:
   - admonition
-  - codehilite
+  - codehilite:
+      guess_lang: false
   - toc:
       permalink: true
