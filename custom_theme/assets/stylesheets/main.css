@@ -590,6 +590,11 @@ a:hover {
     padding: 0;
   }
 
+  /* Add left margin to brand logo on mobile */
+  .brand {
+    margin-left: 1rem;
+  }
+
   /* Theme toggle adjustment for mobile */
   .theme-toggle {
     top: 0.5rem;

@@ -18,11 +18,13 @@ Fundamental principles of event sourcing with pupsourcing.
 Event sourcing stores state changes as an immutable sequence of events rather than maintaining only current state. Instead of updating records (CRUD), the system appends events that describe what happened.
 
 **Traditional CRUD:**
-```sql
+```
 User table:
 | id | email              | name  | status |
 | 1  | alice@example.com  | Alice | active |
+```
 
+```sql
 # UPDATE loses history
 UPDATE user SET email='new@email.com' WHERE id=1
 ```
