@@ -595,9 +595,9 @@ a:hover {
     margin-left: 1rem;
   }
 
-  /* Theme toggle adjustment for mobile */
+  /* Theme toggle adjustment for mobile - center vertically in header */
   .theme-toggle {
-    top: 0.5rem;
+    top: 1.25rem;
     right: 3.5rem;
     font-size: 0.8rem;
     padding: 0.4rem 0.6rem;
