@@ -474,45 +474,55 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
 ```
 
 **Idempotent approach 2: Use upsert semantics**
+
+For type-safe event handling, use the [eventmap-gen](./eventmap-gen.md) tool to generate conversion functions:
+
 ```go
 func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error {
     if event.EventType != "UserCreated" {
         return nil
     }
     
-    var payload struct {
-        Email string `json:"email"`
-        Name  string `json:"name"`
-    }
-    if err := json.Unmarshal(event.Payload, &payload); err != nil {
+    // Use generated code for type-safe conversion
+    domainEvent, err := generated.FromESEvent(event)
+    if err != nil {
         return err
+    }
+    
+    userCreated, ok := domainEvent.(events.UserCreated)
+    if !ok {
+        return fmt.Errorf("unexpected event type")
     }
     
     // Use INSERT ... ON CONFLICT to make this idempotent
     // If aggregate_id already exists, update with the same values
-    _, err := tx.ExecContext(ctx,
+    _, err = tx.ExecContext(ctx,
         `INSERT INTO users (aggregate_id, email, name, created_at) 
          VALUES ($1, $2, $3, $4)
          ON CONFLICT (aggregate_id) 
          DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name`,
-        event.AggregateID, payload.Email, payload.Name, event.CreatedAt)
+        event.AggregateID, userCreated.Email, userCreated.Name, event.CreatedAt)
     return err
 }
 ```
 
 **Idempotent approach 3: Use event position as version**
+
 ```go
 func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error {
     if event.EventType != "InventoryAdjusted" {
         return nil
     }
     
-    var payload struct {
-        ProductID string `json:"product_id"`
-        Quantity  int    `json:"quantity"`
-    }
-    if err := json.Unmarshal(event.Payload, &payload); err != nil {
+    // Use generated code for type-safe conversion
+    domainEvent, err := generated.FromESEvent(event)
+    if err != nil {
         return err
+    }
+    
+    inventoryAdjusted, ok := domainEvent.(events.InventoryAdjusted)
+    if !ok {
+        return fmt.Errorf("unexpected event type")
     }
     
     // Only apply if this event's position is greater than last processed position for this product
@@ -520,7 +530,7 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
         `UPDATE inventory 
          SET quantity = quantity + $1, last_event_position = $2
          WHERE product_id = $3 AND (last_event_position IS NULL OR last_event_position < $2)`,
-        payload.Quantity, event.GlobalPosition, payload.ProductID)
+        inventoryAdjusted.Quantity, event.GlobalPosition, inventoryAdjusted.ProductID)
     if err != nil {
         return err
     }
@@ -726,63 +736,52 @@ Handle different event versions by converting older event formats to newer ones 
 - Aggregate reconstruction should use consistent event structure
 
 **Real-world example:**
-A user registration event evolved to include additional fields. Instead of handling both versions everywhere, upcast v1 to v2 format:
+A user registration event evolved to include additional fields. With [eventmap-gen](./eventmap-gen.md), the generated code handles versioning automatically:
 
 ```go
-// Version 1 (original)
-type UserRegisteredV1 struct {
-    Email string `json:"email"`
-    Name  string `json:"name"`
+// Domain events (in your events/v1 and events/v2 directories)
+// events/v1/user_registered.go
+package v1
+
+type UserRegistered struct {
+    Email string
+    Name  string
 }
 
-// Version 2 (added country)
-type UserRegisteredV2 struct {
-    Email   string `json:"email"`
-    Name    string `json:"name"`
-    Country string `json:"country"`
+// events/v2/user_registered.go
+package v2
+
+type UserRegistered struct {
+    Email   string
+    Name    string
+    Country string
 }
 
-// Upcast v1 events to v2 format
-func upcastUserRegistered(event es.PersistedEvent) (UserRegisteredV2, error) {
-    switch event.EventVersion {
-    case 1:
-        var v1 UserRegisteredV1
-        if err := json.Unmarshal(event.Payload, &v1); err != nil {
-            return UserRegisteredV2{}, err
-        }
-        // Convert v1 to v2 with default value
-        return UserRegisteredV2{
-            Email:   v1.Email,
-            Name:    v1.Name,
-            Country: "Unknown", // Default for legacy events
-        }, nil
-    
-    case 2:
-        var v2 UserRegisteredV2
-        if err := json.Unmarshal(event.Payload, &v2); err != nil {
-            return UserRegisteredV2{}, err
-        }
-        return v2, nil
-    
-    default:
-        return UserRegisteredV2{}, fmt.Errorf("unknown version: %d", event.EventVersion)
-    }
-}
-
-// Use in projection
+// Use in projection - eventmap-gen handles version conversion
 func (p *UserProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
     if event.EventType == "UserRegistered" {
-        // Always work with v2 format, regardless of stored version
-        v2, err := upcastUserRegistered(event)
+        // Use generated FromESEvent to get the right version
+        domainEvent, err := generated.FromESEvent(event)
         if err != nil {
             return err
         }
         
-        // Single code path for all versions
-        _, err = tx.ExecContext(ctx,
-            "INSERT INTO users (aggregate_id, email, name, country) VALUES ($1, $2, $3, $4)",
-            event.AggregateID, v2.Email, v2.Name, v2.Country)
-        return err
+        // Type switch on the domain event
+        switch e := domainEvent.(type) {
+        case v1.UserRegistered:
+            // Handle v1 with default
+            _, err = tx.ExecContext(ctx,
+                "INSERT INTO users (aggregate_id, email, name, country) VALUES ($1, $2, $3, $4)",
+                event.AggregateID, e.Email, e.Name, "Unknown")
+            return err
+            
+        case v2.UserRegistered:
+            // Handle v2 directly
+            _, err = tx.ExecContext(ctx,
+                "INSERT INTO users (aggregate_id, email, name, country) VALUES ($1, $2, $3, $4)",
+                event.AggregateID, e.Email, e.Name, e.Country)
+            return err
+        }
     }
     return nil
 }
@@ -898,4 +897,4 @@ func LoadUser(ctx context.Context, tx es.DBTX, store store.AggregateStreamReader
 - [Getting Started](./getting-started.md) - Setup and first steps
 - [Scaling Guide](./scaling.md) - Production patterns
 - [API Reference](./api-reference.md) - Complete API docs
-- [Examples](https://github.com/getpup/pupsourcing/tree/main/examples) - Working code examples
+- [Examples](https://github.com/getpup/pupsourcing/tree/master/examples) - Working code examples

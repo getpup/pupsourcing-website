@@ -103,7 +103,7 @@ PARTITION_KEY=2 TOTAL_PARTITIONS=4 ./myapp process-projections
 PARTITION_KEY=3 TOTAL_PARTITIONS=4 ./myapp process-projections
 ```
 
-See [partitioned example](https://github.com/getpup/pupsourcing/tree/main/examples/partitioned) for details.
+See [partitioned example](https://github.com/getpup/pupsourcing/tree/master/examples/partitioned) for details.
 
 #### Pattern 2: Worker Pool (Single Process)
 
@@ -164,7 +164,7 @@ func (p *UnsafeProjection) Handle(ctx context.Context, event es.PersistedEvent) 
 }
 ```
 
-See [worker-pool example](https://github.com/getpup/pupsourcing/tree/main/examples/worker-pool) for details.
+See [worker-pool example](https://github.com/getpup/pupsourcing/tree/master/examples/worker-pool) for details.
 
 ### When to Use Each Pattern
 
@@ -256,7 +256,7 @@ err := r.Run(ctx, []runner.ProjectionRunner{
 })
 ```
 
-See [multiple-projections example](https://github.com/getpup/pupsourcing/tree/main/examples/multiple-projections) for details.
+See [multiple-projections example](https://github.com/getpup/pupsourcing/tree/master/examples/multiple-projections) for details.
 
 ### Trade-offs
 
@@ -374,7 +374,7 @@ Day 10: 4 workers (each handles ~25%)
 Day 30: 8 workers (each handles ~12.5%)
 ```
 
-See [scaling example](https://github.com/getpup/pupsourcing/tree/main/examples/scaling) for a demonstration.
+See [scaling example](https://github.com/getpup/pupsourcing/tree/master/examples/scaling) for a demonstration.
 
 ### Pattern 2: Projection Prioritization
 
@@ -777,6 +777,5 @@ WHERE bounded_context = 'Identity' AND aggregate_type = 'User';
 ## See Also
 
 - [Getting Started](./getting-started.md) - Basic setup
-- [Scaling Example](https://github.com/getpup/pupsourcing/tree/main/examples/scaling) - Dynamic scaling demonstration
+- [Scaling Example](https://github.com/getpup/pupsourcing/tree/master/examples/scaling) - Dynamic scaling demonstration
 - [Deployment Guide](./deployment.md) - Production deployment patterns
-- [Industry Alignment](./industry-alignment.md) - Comparison with other systems

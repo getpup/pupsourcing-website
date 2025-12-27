@@ -69,25 +69,23 @@ func (p *UserCountProjection) BoundedContexts() []string {
 func (p *UserCountProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
     // Only User events arrive here - no need to check EventType for other aggregates
     
-    // Note: For type-safe event handling, use the eventmap-gen tool to generate
-    // conversion code. Example: e, err := FromESEvent(event)
-    // Then use a type switch for compile-time safety instead of string comparisons.
+    // Use eventmap-gen for type-safe event handling (see Code Generation chapter)
+    domainEvent, err := generated.FromESEvent(event)
+    if err != nil {
+        return err
+    }
     
-    switch event.EventType {
-    case "UserCreated":
-        var payload UserCreated
-        if err := json.Unmarshal(event.Payload, &payload); err != nil {
-            return err
-        }
-        
+    // Type switch provides compile-time safety
+    switch e := domainEvent.(type) {
+    case events.UserCreated:
         // Update read model in the same transaction
         _, err := tx.ExecContext(ctx,
             "INSERT INTO user_stats (user_id, email, created_at) VALUES ($1, $2, $3)"+
             "ON CONFLICT (user_id) DO NOTHING",
-            event.AggregateID, payload.Email, event.CreatedAt)
+            event.AggregateID, e.Email, event.CreatedAt)
         return err
         
-    case "UserDeactivated":
+    case events.UserDeactivated:
         _, err := tx.ExecContext(ctx,
             "UPDATE user_stats SET active = false WHERE user_id = $1",
             event.AggregateID)

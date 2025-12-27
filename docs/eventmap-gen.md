@@ -461,21 +461,24 @@ func (r *Repository) Save(ctx context.Context, u *user.User) error {
     defer tx.Rollback()
     
     // Get expected version from aggregate
-    // Assume user aggregate tracks its version
     expectedVersion := u.Version()
     
     // Append to event store with optimistic concurrency
-    _, err = r.store.Append(ctx, tx, es.Exact(expectedVersion), esEvents)
+    result, err := r.store.Append(ctx, tx, es.Exact(expectedVersion), esEvents)
     if err != nil {
         return err
     }
+    
+    // Update aggregate version after successful append
+    // This is crucial for optimistic concurrency control
+    u.SetVersion(result.ToVersion())
     
     return tx.Commit()
 }
 
 func (r *Repository) Load(ctx context.Context, id string) (*user.User, error) {
     // Read aggregate stream
-    persistedEvents, err := r.store.ReadAggregateStream(
+    stream, err := r.store.ReadAggregateStream(
         ctx, r.db, "User", id, nil, nil,
     )
     if err != nil {
@@ -483,13 +486,16 @@ func (r *Repository) Load(ctx context.Context, id string) (*user.User, error) {
     }
     
     // Convert to domain events using generated code
-    domainEvents, err := FromESEvents[any](persistedEvents)
+    domainEvents, err := FromESEvents[any](stream.Events)
     if err != nil {
         return nil, err
     }
     
-    // Reconstitute aggregate from events
-    return user.FromEvents(id, domainEvents), nil
+    // Reconstitute aggregate from events with correct version
+    u := user.FromEvents(id, domainEvents)
+    u.SetVersion(stream.Version())  // Set the current version from stream
+    
+    return u, nil
 }
 ```
 

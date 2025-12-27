@@ -207,7 +207,7 @@ func toLogrusFields(keyvals []interface{}) logrus.Fields {
 }
 ```
 
-See the [with-logging example](https://github.com/getpup/pupsourcing/tree/main/examples/with-logging) for a complete working demonstration.
+See the [with-logging example](https://github.com/getpup/pupsourcing/tree/master/examples/with-logging) for a complete working demonstration.
 
 ## Distributed Tracing
 
@@ -419,5 +419,5 @@ Use logging to verify:
 ## Related Documentation
 
 - [Deployment Guide](./deployment.md) - Production deployment and monitoring
-- [Examples](https://github.com/getpup/pupsourcing/tree/main/examples/with-logging) - Complete logging example
+- [Examples](https://github.com/getpup/pupsourcing/tree/master/examples/with-logging) - Complete logging example
 - [API Reference](./api-reference.md) - Full API documentation

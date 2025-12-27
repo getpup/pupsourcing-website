@@ -231,14 +231,14 @@ err := processor.Run(ctx, proj)
 
 ## Complete Example
 
-See the [complete working example](https://github.com/getpup/pupsourcing/tree/main/examples/single-worker/main.go) that ties everything together.
+See the [complete working example](https://github.com/getpup/pupsourcing/tree/master/examples/single-worker/main.go) that ties everything together.
 
 ## Next Steps
 
 - Learn [Core Concepts](./core-concepts.md) to understand event sourcing with pupsourcing
 - Explore [Projections & Scaling](./scaling.md) to build read models
 - See [Scaling Guide](./scaling.md) for production deployments
-- Browse [Examples](https://github.com/getpup/pupsourcing/tree/main/examples) for more patterns
+- Browse [Examples](https://github.com/getpup/pupsourcing/tree/master/examples) for more patterns
 
 ## Common Patterns
 
@@ -344,4 +344,4 @@ SELECT * FROM projection_checkpoints WHERE projection_name = 'your_projection';
 
 - [Core Concepts](./core-concepts.md) - Understand the fundamentals
 - [API Reference](./api-reference.md) - Complete API documentation
-- [Examples](https://github.com/getpup/pupsourcing/tree/main/examples) - Working code examples
+- [Examples](https://github.com/getpup/pupsourcing/tree/master/examples) - Working code examples

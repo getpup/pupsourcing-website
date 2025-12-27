@@ -397,11 +397,11 @@ When migrating between adapters:
 
 ## Examples
 
-Complete working examples for each adapter are available in the [pupsourcing repository](https://github.com/getpup/pupsourcing/tree/main/examples):
+Complete working examples for each adapter are available in the [pupsourcing repository](https://github.com/getpup/pupsourcing/tree/master/examples):
 
-- **PostgreSQL**: [examples/basic/](https://github.com/getpup/pupsourcing/tree/main/examples/basic) - Full-featured example with projections
-- **SQLite**: [examples/sqlite-basic/](https://github.com/getpup/pupsourcing/tree/main/examples/sqlite-basic) - Embedded database example
-- **MySQL**: [examples/mysql-basic/](https://github.com/getpup/pupsourcing/tree/main/examples/mysql-basic) - MySQL/MariaDB example
+- **PostgreSQL**: [examples/basic/](https://github.com/getpup/pupsourcing/tree/master/examples/basic) - Full-featured example with projections
+- **SQLite**: [examples/sqlite-basic/](https://github.com/getpup/pupsourcing/tree/master/examples/sqlite-basic) - Embedded database example
+- **MySQL**: [examples/mysql-basic/](https://github.com/getpup/pupsourcing/tree/master/examples/mysql-basic) - MySQL/MariaDB example
 
 ## Contributing
 
