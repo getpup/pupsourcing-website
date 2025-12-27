@@ -50,7 +50,7 @@ UPDATE users SET email='new@email.com' WHERE id=1;
 
 **Event Sourcing - Preserves complete history:**
 
-```go
+```
 Events (append-only log):
 ┌───────────────────────────────────────────────────────┐
 │ 1. UserCreated                                        │

@@ -298,7 +298,7 @@ docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:16
 ### Migration Issues
 
 Verify migrations were applied:
-```sql
+```shell
 \d events
 \d aggregate_heads
 \d projection_checkpoints
