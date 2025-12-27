@@ -47,9 +47,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Close sidebar when clicking on a link (mobile only)
   const sidebarLinks = document.querySelectorAll('#docsSidebar a');
+  const mobileBreakpoint = 768;
+  
   sidebarLinks.forEach(link => {
     link.addEventListener('click', function() {
-      if (window.innerWidth <= 768) {
+      if (window.innerWidth <= mobileBreakpoint) {
         const sidebar = document.getElementById('docsSidebar');
         const backdrop = document.getElementById('sidebarBackdrop');
         if (sidebar && backdrop) {
