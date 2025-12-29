@@ -581,7 +581,9 @@ pupsourcing is designed as a library that you integrate into your application. Y
 **Library approach (pupsourcing):**
 ```go
 // You control when and how to run projections
-processor := projection.NewProcessor(db, store, &config)
+store := postgres.NewStore(postgres.DefaultStoreConfig())
+config := projection.DefaultProcessorConfig()
+processor := postgres.NewProcessor(db, store, &config)
 err := processor.Run(ctx, projection)
 ```
 
