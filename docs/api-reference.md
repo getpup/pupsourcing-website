@@ -278,11 +278,12 @@ Reads all events for an aggregate, optionally filtered by version range.
 
 ```go
 func (s *Store) ReadAggregateStream(ctx context.Context, tx es.DBTX, 
-                                   aggregateType string, aggregateID string,
+                                   boundedContext, aggregateType string, aggregateID string,
                                    fromVersion, toVersion *int64) (es.Stream, error)
 ```
 
 **Parameters:**
+- `boundedContext`: Bounded context of the aggregate (e.g., "Identity", "Billing")
 - `aggregateType`: Type of aggregate (e.g., "User")
 - `aggregateID`: Aggregate instance ID (string: UUID, email, or any identifier)
 - `fromVersion`: Optional minimum version (inclusive). Pass `nil` for all.
@@ -300,7 +301,7 @@ func (s *Store) ReadAggregateStream(ctx context.Context, tx es.DBTX,
 ```go
 // Read all events for UUID-based aggregate
 userID := uuid.New().String()
-stream, _ := store.ReadAggregateStream(ctx, tx, "User", userID, nil, nil)
+stream, _ := store.ReadAggregateStream(ctx, tx, "Identity", "User", userID, nil, nil)
 fmt.Printf("Aggregate version: %d\n", stream.Version())
 fmt.Printf("Event count: %d\n", stream.Len())
 
@@ -311,14 +312,14 @@ for _, event := range stream.Events {
 
 // Read from version 5 onwards
 from := int64(5)
-stream, _ := store.ReadAggregateStream(ctx, tx, "User", userID, &from, nil)
+stream, _ := store.ReadAggregateStream(ctx, tx, "Identity", "User", userID, &from, nil)
 
 // Read specific range
 to := int64(10)
-stream, _ := store.ReadAggregateStream(ctx, tx, "User", userID, &from, &to)
+stream, _ := store.ReadAggregateStream(ctx, tx, "Identity", "User", userID, &from, &to)
 
 // Read reservation aggregate by email
-stream, _ := store.ReadAggregateStream(ctx, tx, "EmailReservation", "user@example.com", nil, nil)
+stream, _ := store.ReadAggregateStream(ctx, tx, "Identity", "EmailReservation", "user@example.com", nil, nil)
 
 // Check if aggregate exists
 if stream.IsEmpty() {

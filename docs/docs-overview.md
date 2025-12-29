@@ -389,6 +389,146 @@ for _, event := range stream.Events {
 
 ---
 
+## Documentation Structure
+
+### Getting Started
+Start here if you're new to pupsourcing:
+
+- **[Getting Started](getting-started.md)** - Installation, setup, and your first event-sourced application
+  - Prerequisites and installation
+  - Database schema generation
+  - Creating and storing your first event
+  - Reading events back
+  - Building a simple projection
+
+### Core Concepts
+Understand the fundamentals:
+
+- **[Core Concepts](core-concepts.md)** - Deep dive into event sourcing principles with pupsourcing
+  - Event sourcing fundamentals
+  - Core components (Events, Aggregates, Event Store, Projections)
+  - Key concepts (Optimistic Concurrency, Global Position, Idempotency)
+  - Design principles (Library vs Framework, Explicit Dependencies)
+  - Common patterns (Read-Your-Writes, Event Upcasting, Aggregate Reconstruction)
+
+### Database Adapters
+Choose and configure your database:
+
+- **[Database Adapters](adapters.md)** - PostgreSQL, SQLite, and MySQL adapter documentation
+  - PostgreSQL (production-ready, recommended)
+  - SQLite (embedded, perfect for testing)
+  - MySQL/MariaDB (production-ready)
+  - Adapter comparison and migration strategies
+
+### Projections and Scaling
+Build read models and scale your system:
+
+- **[Projections](projections.md)** - Building and managing projections
+  - Scoped vs Global projections
+  - Basic implementation
+  - Idempotency patterns
+  
+- **[Scaling](scaling.md)** - Horizontal scaling patterns for projections
+  - When and how to scale
+  - Hash-based partitioning
+  - Running multiple projections
+  - Performance tuning (batch size, connection pooling, poll interval)
+  - Production patterns (gradual scaling, prioritization, hot/cold separation)
+  - Advanced topics (projection rebuilding, database partitioning)
+
+### Code Generation
+Type-safe event mapping:
+
+- **[Event Mapping Code Generation](eventmap-gen.md)** - Strongly-typed conversion between domain and ES events
+  - Why this tool exists
+  - Installation and quick start
+  - Versioned events (schema evolution)
+  - Clean architecture integration
+  - Repository adapter pattern
+
+### Production Operations
+Deploy and monitor:
+
+- **[Deployment](deployment.md)** - Production deployment patterns and operational best practices
+  - Deployment patterns (Docker Compose, Kubernetes, systemd)
+  - Configuration management
+  - Monitoring and metrics
+  - Graceful shutdown
+  - Security considerations
+  - Troubleshooting
+
+- **[Observability](observability.md)** - Logging, tracing, and monitoring
+  - Logger interface and integration
+  - Distributed tracing (TraceID, CorrelationID, CausationID)
+  - Metrics integration (Prometheus examples)
+  - Best practices
+
+### API Reference
+Complete API documentation:
+
+- **[API Reference](api-reference.md)** - Complete API documentation
+  - Core types (Event, PersistedEvent, Stream, ExpectedVersion)
+  - Event Store interface
+  - Projection interfaces
+  - PostgreSQL adapter
+  - Error types
+
+### About
+Learn more about the project:
+
+- **[About](about.md)** - Project philosophy, history, and community
+
+---
+
+## Quick Links
+
+### For Beginners
+1. Start with [Getting Started](getting-started.md)
+2. Understand [Core Concepts](core-concepts.md)
+3. Explore [Examples](https://github.com/getpup/pupsourcing/tree/master/examples)
+
+### For Production
+1. Review [Database Adapters](adapters.md) and choose your database
+2. Plan your [Scaling Strategy](scaling.md)
+3. Set up [Observability](observability.md)
+4. Follow [Deployment Guide](deployment.md)
+
+### For Advanced Users
+1. Implement [Event Mapping Code Generation](eventmap-gen.md)
+2. Study [Scaling Patterns](scaling.md)
+3. Review [API Reference](api-reference.md)
+
+---
+
+## Examples Repository
+
+The [pupsourcing repository](https://github.com/getpup/pupsourcing) includes comprehensive working examples:
+
+- **basic** - Complete PostgreSQL example with projections
+- **sqlite-basic** - SQLite embedded database example
+- **mysql-basic** - MySQL/MariaDB example
+- **single-worker** - Single projection worker
+- **multiple-projections** - Running multiple projections together
+- **worker-pool** - Worker pool with partitioned projections
+- **partitioned** - Separate processes with partitioning
+- **scaling** - Dynamic scaling demonstration
+- **scoped-projections** - Scoped projection filtering
+- **stop-resume** - Checkpoint management and resumption
+- **with-logging** - Observability integration
+- **eventmap-codegen** - Type-safe event mapping generation
+
+Each example includes a README with setup instructions and explanation of concepts.
+
+---
+
+## Community and Support
+
+- **GitHub Repository**: [github.com/getpup/pupsourcing](https://github.com/getpup/pupsourcing)
+- **Issues & Discussions**: [GitHub Issues](https://github.com/getpup/pupsourcing/issues)
+- **Documentation**: [getpup.github.io/pupsourcing-website](https://getpup.github.io/pupsourcing-website)
+
+---
+
 ## What's Next?
 
 - **[Getting Started](getting-started.md)** - Complete setup guide and first steps
