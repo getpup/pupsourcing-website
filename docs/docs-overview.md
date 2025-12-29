@@ -254,7 +254,7 @@ Automatic conflict detection prevents lost updates:
 ```go
 // Append with expected version
 result, err := store.Append(ctx, tx, 
-    es.ExpectedVersion(3),  // Expects version 3
+    es.Exact(3),  // Expects version 3
     []es.Event{event},
 )
 // If another process already wrote version 4, this fails
@@ -295,8 +295,8 @@ Built-in support for scaling projections across multiple workers:
 ```go
 // Partition projections across 4 workers
 config := projection.ProcessorConfig{
-    PartitionCount:  4,
-    PartitionNumber: 0,  // This worker handles partition 0
+    PartitionKey:    0,  // This worker handles partition 0
+    TotalPartitions: 4,
 }
 processor := postgres.NewProcessor(db, store, &config)
 ```

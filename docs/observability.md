@@ -68,11 +68,15 @@ store := postgres.NewStore(config)
 Logs processor lifecycle, batch progress, checkpoints, and errors:
 
 ```go
-import "github.com/getpup/pupsourcing/es/projection"
+import (
+    "github.com/getpup/pupsourcing/es/projection"
+    "github.com/getpup/pupsourcing/es/adapters/postgres"
+)
 
+store := postgres.NewStore(postgres.DefaultStoreConfig())
 config := projection.DefaultProcessorConfig()
 config.Logger = &MyLogger{logger: slog.Default()}
-processor := projection.NewProcessor(db, store, &config)
+processor := postgres.NewProcessor(db, store, &config)
 ```
 
 ### Zero-Overhead Design
