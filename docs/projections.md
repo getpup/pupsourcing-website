@@ -2,6 +2,13 @@
 
 Guide to building and managing projections in pupsourcing.
 
+!!! tip "Production Recommendation"
+    For production deployments, use the **[pupsourcing-orchestrator](orchestrator/overview.md)** library to run projections. It handles coordination, scaling, and failover automatically.
+    
+    **[Orchestrator Documentation](orchestrator/overview.md)**
+    
+    The documentation below covers manual projection running for development or specialized use cases.
+
 ## Table of Contents
 
 1. [Projections Overview](#projections-overview)
