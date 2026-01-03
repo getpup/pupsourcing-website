@@ -37,38 +37,37 @@ go get github.com/getpup/pupsourcing-orchestrator
 
 ## Database Setup
 
-The orchestrator uses PostgreSQL tables to coordinate workers. Run migrations to create the required schema:
+The orchestrator uses PostgreSQL tables to coordinate workers. Generate and apply migrations to create the required schema:
 
-```go
-package main
+### 1. Generate Migrations
 
-import (
-    "database/sql"
-    "log"
-    
-    _ "github.com/lib/pq"
-    "github.com/getpup/pupsourcing-orchestrator"
-)
-
-func main() {
-    // Connect to your database
-    db, err := sql.Open("postgres", "postgres://user:pass@localhost/mydb?sslmode=disable")
-    if err != nil {
-        log.Fatalf("Database connection failed: %v", err)
-    }
-    defer db.Close()
-    
-    // Run migrations (run this once during deployment)
-    if err := orchestrator.RunMigrations(db); err != nil {
-        log.Fatalf("Migration failed: %v", err)
-    }
-    
-    log.Println("Migrations completed successfully")
-}
+```bash
+go run github.com/getpup/pupsourcing-orchestrator/cmd/migrate-gen -output migrations
 ```
 
-!!! tip "Running Migrations"
-    Run migrations as part of your deployment process, similar to application schema migrations. They're idempotent and safe to run multiple times.
+This generates SQL migration files in the `migrations/` directory:
+- `001_create_orchestrator_tables.up.sql` - Creates tables
+- `001_create_orchestrator_tables.down.sql` - Rollback script
+
+### 2. Apply Migrations
+
+Use your preferred migration tool to apply the generated SQL files:
+
+```bash
+# Using golang-migrate
+migrate -path migrations -database "postgres://user:pass@localhost/mydb?sslmode=disable" up
+
+# Using psql directly
+psql -h localhost -U user -d mydb -f migrations/001_create_orchestrator_tables.up.sql
+
+# Or any other migration tool (Flyway, Liquibase, etc.)
+```
+
+!!! tip "Migration Best Practices"
+    - Generate migrations once and commit them to version control
+    - Apply migrations as part of your deployment pipeline
+    - Use your team's existing migration tooling
+    - Migrations are idempotent and safe to run multiple times
 
 The migrations create these tables:
 - `orchestrator_generations` - Tracks partition configurations
