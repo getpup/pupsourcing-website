@@ -84,8 +84,24 @@ for _, event := range stream.Events {
 
 ---
 
+## Production Ready
+
+For production deployments, use **[pupsourcing-orchestrator](https://github.com/getpup/pupsourcing-orchestrator)** — a companion library that handles worker coordination, partition assignment, and scaling:
+
+- **Automatic horizontal scaling** — Add workers, and they coordinate automatically
+- **Worker coordination and failover** — Built-in health monitoring and recovery
+- **Prometheus metrics out of the box** — Monitor performance and health
+- **Kubernetes-friendly deployment** — Production-ready manifests included
+
+**[Get Started with Orchestrator](orchestrator/getting-started.md)**
+
+For simple single-process applications, the [core library](projections.md) works standalone.
+
+---
+
 ## Learn More
 
-- **[Getting Started](getting-started.md)** — Complete setup guide
+- **[Getting Started](getting-started.md)** — Complete setup guide for the core library
+- **[Orchestrator Guide](orchestrator/overview.md)** — Production orchestration for projections
 - **[Documentation](docs-overview.md)** — Deep dive into concepts and patterns
 - **[GitHub](https://github.com/getpup/pupsourcing)** — Source code and examples

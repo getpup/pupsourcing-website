@@ -12,7 +12,25 @@ theme:
 
 nav:
   - Home: index.md
-  - Docs: docs-overview.md
+  - Getting Started:
+    - Quick Start: getting-started.md
+    - With Orchestrator: orchestrator/getting-started.md
+  - Core Concepts: core-concepts.md
+  - Orchestrator:
+    - Overview: orchestrator/overview.md
+    - Concepts: orchestrator/concepts.md
+    - Configuration: orchestrator/configuration.md
+    - Scaling: orchestrator/scaling.md
+    - Metrics: orchestrator/metrics.md
+    - Kubernetes: orchestrator/kubernetes.md
+  - Core Library:
+    - Projections: projections.md
+    - Adapters: adapters.md
+    - Manual Scaling: scaling.md
+  - Deployment: deployment.md
+  - Observability: observability.md
+  - Event Map Generator: eventmap-gen.md
+  - API Reference: api-reference.md
   - About: about.md
 
 markdown_extensions:
