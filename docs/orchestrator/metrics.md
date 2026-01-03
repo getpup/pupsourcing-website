@@ -45,12 +45,12 @@ func main() {
     go http.ListenAndServe(":9090", nil)
 
     // Create orchestrator - metrics automatically available
-    orch, _ := orchestrator.New(orchestrator.Config{
-        DB:         db,
-        EventStore: eventStore,
-        ReplicaSet: "main-projections",
-        // MetricsEnabled defaults to true
-    })
+    orch, _ := orchestrator.New(
+        db,
+        eventStore,
+        "main-projections",
+        // Metrics enabled by default
+    )
 
     orch.Run(ctx, projections)
 }
@@ -69,9 +69,11 @@ metricsServer.Start()
 defer metricsServer.Shutdown(ctx)
 
 // Create orchestrator
-orch, _ := orchestrator.New(orchestrator.Config{
-    // ... config ...
-})
+orch, _ := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+)
 ```
 
 ### Disabling Metrics
@@ -79,13 +81,12 @@ orch, _ := orchestrator.New(orchestrator.Config{
 To disable metrics collection:
 
 ```go
-metricsEnabled := false
-orch, _ := orchestrator.New(orchestrator.Config{
-    DB:             db,
-    EventStore:     eventStore,
-    ReplicaSet:     "main-projections",
-    MetricsEnabled: &metricsEnabled,
-})
+orch, _ := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+    orchestrator.WithMetricsEnabled(false),
+)
 ```
 
 ## Available Metrics

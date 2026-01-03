@@ -31,11 +31,11 @@ processor := projection.NewPostgresProcessor(projection.ProcessorConfig{
 
 **After (Orchestrator):**
 ```go
-orch, _ := orchestrator.New(orchestrator.Config{
-    DB:         db,
-    EventStore: eventStore,
-    ReplicaSet: "main-projections",
-})
+orch, _ := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+)
 orch.Run(ctx, []projection.Projection{&UserProjection{}})
 ```
 

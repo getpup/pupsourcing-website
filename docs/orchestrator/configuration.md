@@ -7,8 +7,8 @@ Detailed configuration reference for the orchestrator.
 ## Table of Contents
 
 - [Config Structure](#config-structure)
-- [Required Fields](#required-fields)
-- [Optional Fields](#optional-fields)
+- [Required Parameters](#required-parameters)
+- [Optional Configuration](#optional-configuration)
 - [Configuration Presets](#configuration-presets)
 - [Environment-Based Configuration](#environment-based-configuration)
 - [Validation](#validation)
@@ -16,27 +16,47 @@ Detailed configuration reference for the orchestrator.
 
 ## Config Structure
 
-The orchestrator is configured using the `orchestrator.Config` struct:
+The orchestrator is configured by passing required parameters and optional configuration to `orchestrator.New()`.
 
+### Required Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `db` | `*sql.DB` | Database connection for generation state and processors |
+| `eventStore` | `*postgres.Store` | Event store for reading events |
+| `replicaSet` | `ReplicaSetName` | Name of the replica set this orchestrator manages |
+
+### Optional Configuration (with defaults)
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `WithHeartbeatInterval(interval)` | `5s` | Interval between heartbeats |
+| `WithStaleWorkerTimeout(timeout)` | `30s` | Duration after which a worker is considered dead |
+| `WithCoordinationTimeout(timeout)` | `60s` | Max time to wait for coordination |
+| `WithPollInterval(interval)` | `1s` | How often to check state during coordination |
+| `WithBatchSize(size)` | `100` | Number of events to read per batch |
+| `WithRegistrationWaitTime(duration)` | `5s` | Time to wait for workers to register before assigning partitions |
+| `WithLogger(logger)` | `nil` | Logger for observability |
+| `WithMetricsEnabled(enabled)` | `true` | Enable Prometheus metrics |
+| `WithTableNames(genTable, workersTable)` | See below | Custom table names for generation store |
+| `WithGenerationStore(store)` | PostgreSQL | Custom generation store implementation |
+| `WithExecutor(executor)` | Default | Custom executor for running projections |
+
+**Example:**
 ```go
-type Config struct {
-    // Required fields
-    DB                  *sql.DB
-    EventStore          *postgres.Store
-    ReplicaSet          ReplicaSetName
-    
-    // Optional fields with defaults
-    HeartbeatInterval   time.Duration
-    StaleWorkerTimeout  time.Duration
-    CoordinationTimeout time.Duration
-    BatchSize           int
-    Logger              es.Logger
-}
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+    orchestrator.WithBatchSize(1000),  // Larger batches for efficiency
+    orchestrator.WithHeartbeatInterval(3 * time.Second),
+    orchestrator.WithStaleWorkerTimeout(15 * time.Second),
+)
 ```
 
-## Required Fields
+## Required Parameters
 
-### DB
+### db
 
 **Type:** `*sql.DB`
 
@@ -53,10 +73,11 @@ if err != nil {
     log.Fatal(err)
 }
 
-config := orchestrator.Config{
-    DB: db,
-    // ...
-}
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+)
 ```
 
 **Connection Pool Settings:**
@@ -74,7 +95,7 @@ db.SetConnMaxLifetime(time.Hour) // Recycle connections after 1 hour
 - **Multiple workers:** Scale based on `workers × projections × 2`
 - **High throughput:** 25-50 connections per worker
 
-### EventStore
+### eventStore
 
 **Type:** `*postgres.Store`
 
@@ -84,10 +105,11 @@ db.SetConnMaxLifetime(time.Hour) // Recycle connections after 1 hour
 ```go
 eventStore := postgres.NewStore(postgres.DefaultStoreConfig())
 
-config := orchestrator.Config{
-    EventStore: eventStore,
-    // ...
-}
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+)
 ```
 
 **Custom Store Configuration:**
@@ -100,7 +122,7 @@ storeConfig := postgres.StoreConfig{
 eventStore := postgres.NewStore(storeConfig)
 ```
 
-### ReplicaSet
+### replicaSet
 
 **Type:** `ReplicaSetName` (string)
 
@@ -108,10 +130,11 @@ eventStore := postgres.NewStore(storeConfig)
 
 **Example:**
 ```go
-config := orchestrator.Config{
-    ReplicaSet: "main-projections",
-    // ...
-}
+// Main projections
+mainOrch, _ := orchestrator.New(db, eventStore, "main-projections")
+
+// Analytics projections (separate replica set)
+analyticsOrch, _ := orchestrator.New(db, eventStore, "analytics-projections")
 ```
 
 **Naming Conventions:**
@@ -124,20 +147,16 @@ config := orchestrator.Config{
 Run different projection groups independently:
 
 ```go
-mainConfig := orchestrator.Config{
-    ReplicaSet: "main-projections",
-    // ...
-}
+// Main projections
+mainOrch, _ := orchestrator.New(db, eventStore, "main-projections")
 
-analyticsConfig := orchestrator.Config{
-    ReplicaSet: "analytics-projections",
-    // ...
-}
+// Analytics projections
+analyticsOrch, _ := orchestrator.New(db, eventStore, "analytics-projections")
 ```
 
-## Optional Fields
+## Optional Configuration
 
-### HeartbeatInterval
+### WithHeartbeatInterval
 
 **Type:** `time.Duration`  
 **Default:** `5 * time.Second`
@@ -146,10 +165,12 @@ analyticsConfig := orchestrator.Config{
 
 **Example:**
 ```go
-config := orchestrator.Config{
-    HeartbeatInterval: 10 * time.Second,
-    // ...
-}
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+    orchestrator.WithHeartbeatInterval(10 * time.Second),
+)
 ```
 
 **Tuning Guidance:**
@@ -201,7 +222,7 @@ config := orchestrator.Config{
 StaleWorkerTimeout = HeartbeatInterval × 3-6
 ```
 
-### CoordinationTimeout
+### WithCoordinationTimeout
 
 **Type:** `time.Duration`  
 **Default:** `60 * time.Second`
@@ -210,10 +231,12 @@ StaleWorkerTimeout = HeartbeatInterval × 3-6
 
 **Example:**
 ```go
-config := orchestrator.Config{
-    CoordinationTimeout: 120 * time.Second,
-    // ...
-}
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+    orchestrator.WithCoordinationTimeout(120 * time.Second),
+)
 ```
 
 **Tuning Guidance:**
@@ -237,7 +260,7 @@ If coordination doesn't complete within this time:
 - Monitor `pupsourcing_orchestrator_coordination_duration_seconds` metric
 - Set timeout to P99 duration × 2
 
-### BatchSize
+### WithBatchSize
 
 **Type:** `int`  
 **Default:** `100`
@@ -246,10 +269,12 @@ If coordination doesn't complete within this time:
 
 **Example:**
 ```go
-config := orchestrator.Config{
-    BatchSize: 500,
-    // ...
-}
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+    orchestrator.WithBatchSize(500),
+)
 ```
 
 **Tuning Guidance:**
@@ -278,7 +303,7 @@ Example:
   BatchSize = 1000 / 2 = 500
 ```
 
-### Logger
+### WithLogger
 
 **Type:** `es.Logger` (interface)  
 **Default:** `nil` (no logging)
@@ -309,10 +334,12 @@ func (l *MyLogger) Error(ctx context.Context, msg string, keysAndValues ...inter
 }
 
 // Use it
-config := orchestrator.Config{
-    Logger: &MyLogger{logger: slog.Default()},
-    // ...
-}
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+    orchestrator.WithLogger(&MyLogger{logger: slog.Default()}),
+)
 ```
 
 **Example with zerolog:**
@@ -365,16 +392,16 @@ The orchestrator logs these events:
 Fast feedback, frequent changes:
 
 ```go
-config := orchestrator.Config{
-    DB:                  db,
-    EventStore:          eventStore,
-    ReplicaSet:          "dev-projections",
-    HeartbeatInterval:   2 * time.Second,
-    StaleWorkerTimeout:  10 * time.Second,
-    CoordinationTimeout: 30 * time.Second,
-    BatchSize:           50,
-    Logger:              devLogger,
-}
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "dev-projections",
+    orchestrator.WithHeartbeatInterval(2 * time.Second),
+    orchestrator.WithStaleWorkerTimeout(10 * time.Second),
+    orchestrator.WithCoordinationTimeout(30 * time.Second),
+    orchestrator.WithBatchSize(50),
+    orchestrator.WithLogger(devLogger),
+)
 ```
 
 ### Standard Production
@@ -382,17 +409,17 @@ config := orchestrator.Config{
 Balanced for typical production use:
 
 ```go
-config := orchestrator.Config{
-    DB:                  db,
-    EventStore:          eventStore,
-    ReplicaSet:          "main-projections",
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
     // Use defaults:
     // HeartbeatInterval:   5s
     // StaleWorkerTimeout:  30s
     // CoordinationTimeout: 60s
     // BatchSize:           100
-    Logger:              prodLogger,
-}
+    orchestrator.WithLogger(prodLogger),
+)
 ```
 
 ### High Throughput
@@ -400,16 +427,16 @@ config := orchestrator.Config{
 Optimized for event processing throughput:
 
 ```go
-config := orchestrator.Config{
-    DB:                  db,
-    EventStore:          eventStore,
-    ReplicaSet:          "high-throughput-projections",
-    HeartbeatInterval:   10 * time.Second,
-    StaleWorkerTimeout:  45 * time.Second,
-    CoordinationTimeout: 90 * time.Second,
-    BatchSize:           1000,
-    Logger:              prodLogger,
-}
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "high-throughput-projections",
+    orchestrator.WithHeartbeatInterval(10 * time.Second),
+    orchestrator.WithStaleWorkerTimeout(45 * time.Second),
+    orchestrator.WithCoordinationTimeout(90 * time.Second),
+    orchestrator.WithBatchSize(1000),
+    orchestrator.WithLogger(prodLogger),
+)
 ```
 
 ### Stable with Few Workers
@@ -417,16 +444,16 @@ config := orchestrator.Config{
 Optimized for stable systems with infrequent changes:
 
 ```go
-config := orchestrator.Config{
-    DB:                  db,
-    EventStore:          eventStore,
-    ReplicaSet:          "stable-projections",
-    HeartbeatInterval:   15 * time.Second,
-    StaleWorkerTimeout:  90 * time.Second,
-    CoordinationTimeout: 120 * time.Second,
-    BatchSize:           200,
-    Logger:              prodLogger,
-}
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "stable-projections",
+    orchestrator.WithHeartbeatInterval(15 * time.Second),
+    orchestrator.WithStaleWorkerTimeout(90 * time.Second),
+    orchestrator.WithCoordinationTimeout(120 * time.Second),
+    orchestrator.WithBatchSize(200),
+    orchestrator.WithLogger(prodLogger),
+)
 ```
 
 ## Environment-Based Configuration
@@ -468,16 +495,16 @@ func getEnvInt(key string, defaultValue int) int {
 }
 
 func main() {
-    config := orchestrator.Config{
-        DB:                  db,
-        EventStore:          eventStore,
-        ReplicaSet:          orchestrator.ReplicaSetName(os.Getenv("REPLICA_SET")),
-        HeartbeatInterval:   getEnvDuration("HEARTBEAT_INTERVAL", 5*time.Second),
-        StaleWorkerTimeout:  getEnvDuration("STALE_WORKER_TIMEOUT", 30*time.Second),
-        CoordinationTimeout: getEnvDuration("COORDINATION_TIMEOUT", 60*time.Second),
-        BatchSize:           getEnvInt("BATCH_SIZE", 100),
-        Logger:              logger,
-    }
+    orch, err := orchestrator.New(
+        db,
+        eventStore,
+        orchestrator.ReplicaSetName(os.Getenv("REPLICA_SET")),
+        orchestrator.WithHeartbeatInterval(getEnvDuration("HEARTBEAT_INTERVAL", 5*time.Second)),
+        orchestrator.WithStaleWorkerTimeout(getEnvDuration("STALE_WORKER_TIMEOUT", 30*time.Second)),
+        orchestrator.WithCoordinationTimeout(getEnvDuration("COORDINATION_TIMEOUT", 60*time.Second)),
+        orchestrator.WithBatchSize(getEnvInt("BATCH_SIZE", 100)),
+        orchestrator.WithLogger(logger),
+    )
     
     // ...
 }
@@ -502,10 +529,15 @@ BATCH_SIZE="100"
 The orchestrator validates configuration on creation:
 
 ```go
-orch, err := orchestrator.New(config)
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+    orchestrator.WithBatchSize(1000),
+)
 if err != nil {
     // Configuration errors returned here:
-    // - Missing required fields
+    // - Missing required parameters
     // - Invalid values
     // - Logical inconsistencies
 }
@@ -513,9 +545,9 @@ if err != nil {
 
 **Common Validation Errors:**
 
-- `DB cannot be nil`
-- `EventStore cannot be nil`
-- `ReplicaSet cannot be empty`
+- `db cannot be nil`
+- `eventStore cannot be nil`
+- `replicaSet cannot be empty`
 - `HeartbeatInterval must be positive`
 - `StaleWorkerTimeout must be greater than HeartbeatInterval`
 - `BatchSize must be positive`

@@ -32,10 +32,12 @@ Run multiple replica sets when you need different scaling characteristics:
 
 ```go
 // Critical user-facing projections - scale aggressively
-mainOrch, _ := orchestrator.New(orchestrator.Config{
-    ReplicaSet: "main-projections",
+mainOrch, _ := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
     // Scale to 10 workers for low latency
-})
+)
 mainProjections := []projection.Projection{
     &UserProjection{},
     &OrderProjection{},
@@ -43,10 +45,12 @@ mainProjections := []projection.Projection{
 }
 
 // Analytics projections - scale conservatively  
-analyticsOrch, _ := orchestrator.New(orchestrator.Config{
-    ReplicaSet: "analytics-projections",
+analyticsOrch, _ := orchestrator.New(
+    db,
+    eventStore,
+    "analytics-projections",
     // Scale to 3 workers, not time-critical
-})
+)
 analyticsProjections := []projection.Projection{
     &RevenueProjection{},
     &CustomerStatsProjection{},

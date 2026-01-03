@@ -33,11 +33,11 @@ No manual partition assignment or complex configuration needed.
 Deploy a single worker to start:
 
 ```go
-orch, _ := orchestrator.New(orchestrator.Config{
-    DB:         db,
-    EventStore: eventStore,
-    ReplicaSet: "main-projections",
-})
+orch, _ := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+)
 
 orch.Run(ctx, projections)
 ```

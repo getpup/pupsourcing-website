@@ -134,11 +134,11 @@ func main() {
     eventStore := postgres.NewStore(postgres.DefaultStoreConfig())
 
     // Create orchestrator
-    orch, err := orchestrator.New(orchestrator.Config{
-        DB:         db,
-        EventStore: eventStore,
-        ReplicaSet: "main-projections",
-    })
+    orch, err := orchestrator.New(
+        db,
+        eventStore,
+        "main-projections",
+    )
     if err != nil {
         log.Fatalf("Failed to create orchestrator: %v", err)
     }
@@ -266,18 +266,18 @@ For independent scaling, use [multiple replica sets](concepts.md#replica-set).
 The minimal example uses defaults. You can customize behavior:
 
 ```go
-orch, err := orchestrator.New(orchestrator.Config{
-    DB:                  db,
-    EventStore:          eventStore,
-    ReplicaSet:          "main-projections",
+orch, err := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
     
     // Optional configurations
-    HeartbeatInterval:   5 * time.Second,   // How often to heartbeat
-    StaleWorkerTimeout:  30 * time.Second,  // When to consider worker dead
-    CoordinationTimeout: 60 * time.Second,  // Max coordination wait time
-    BatchSize:           100,               // Events per batch
-    Logger:              myLogger,          // Custom logger
-})
+    orchestrator.WithHeartbeatInterval(5 * time.Second),   // How often to heartbeat
+    orchestrator.WithStaleWorkerTimeout(30 * time.Second),  // When to consider worker dead
+    orchestrator.WithCoordinationTimeout(60 * time.Second), // Max coordination wait time
+    orchestrator.WithBatchSize(100),                        // Events per batch
+    orchestrator.WithLogger(myLogger),                      // Custom logger
+)
 ```
 
 See [Configuration](configuration.md) for detailed options and tuning guidance.

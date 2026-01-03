@@ -109,14 +109,18 @@ Run independent projection groups that scale independently:
 
 ```go
 // Critical user projections - scale to 10 workers
-mainOrch, _ := orchestrator.New(orchestrator.Config{
-    ReplicaSet: "main-projections",
-})
+mainOrch, _ := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+)
 
-// Analytics projections - scale to 3 workers  
-analyticsOrch, _ := orchestrator.New(orchestrator.Config{
-    ReplicaSet: "analytics-projections",
-})
+// Analytics projections - scale to 3 workers
+analyticsOrch, _ := orchestrator.New(
+    db,
+    eventStore,
+    "analytics-projections",
+)
 ```
 
 Each replica set coordinates independently with its own scaling characteristics.
@@ -201,11 +205,11 @@ processor.Run(ctx)
 
 ```go
 // New approach: orchestrator handles everything
-orch, _ := orchestrator.New(orchestrator.Config{
-    DB:         db,
-    EventStore: eventStore,
-    ReplicaSet: "main-projections",
-})
+orch, _ := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+)
 
 projections := []projection.Projection{
     &UserProjection{},
