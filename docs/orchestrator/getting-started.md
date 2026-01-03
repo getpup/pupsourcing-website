@@ -246,7 +246,7 @@ All projections in the same replica set:
 - Scale together as a unit
 - Coordinate as one group
 
-For independent scaling, use [multiple replica sets](concepts.md#replica-sets).
+For independent scaling, use [multiple replica sets](concepts.md#replica-set).
 
 ## Configuration Options
 

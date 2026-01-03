@@ -161,6 +161,68 @@ The orchestrator uses standard PostgreSQL with simple table structures. You can:
 - Build custom tooling on top of the same tables
 - Understand exactly what's happening under the hood
 
+## Migration from Manual Runners
+
+If you're currently running projections manually, migrating to the orchestrator is straightforward.
+
+### Before (Manual Runner)
+
+```go
+// Old approach: manually running a single projection processor
+processor := projection.NewPostgresProcessor(projection.ProcessorConfig{
+    DB:              db,
+    EventStore:      eventStore,
+    Projection:      &UserProjection{},
+    BatchSize:       100,
+    PartitionKey:    0,        // Hardcoded
+    TotalPartitions: 3,        // Hardcoded
+})
+
+processor.Run(ctx)
+```
+
+**Issues:**
+- Manual partition assignment
+- No automatic scaling
+- No coordination between workers
+- No failure detection
+
+### After (Orchestrator)
+
+```go
+// New approach: orchestrator handles everything
+orch, _ := orchestrator.New(orchestrator.Config{
+    DB:         db,
+    EventStore: eventStore,
+    ReplicaSet: "main-projections",
+})
+
+projections := []projection.Projection{
+    &UserProjection{},
+}
+
+orch.Run(ctx, projections)
+```
+
+**Benefits:**
+- Automatic partition assignment
+- Horizontal scaling
+- Coordinated worker management
+- Automatic failure detection and recovery
+
+### Migration Steps
+
+1. **Run migrations**: Add orchestrator tables to your database
+   ```go
+   orchestrator.RunMigrations(db)
+   ```
+
+2. **Deploy orchestrator**: Replace manual runner with orchestrator
+
+3. **Scale horizontally**: Add more replicas to your deployment
+
+4. **Monitor**: Verify workers are coordinating correctly
+
 ## Getting Started
 
 Ready to use the orchestrator? Continue to:
