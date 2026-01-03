@@ -4,6 +4,16 @@ Production-ready orchestration for running projections at scale.
 
 ---
 
+## Table of Contents
+
+- [What is pupsourcing-orchestrator?](#what-is-pupsourcing-orchestrator)
+- [When to Use the Orchestrator](#when-to-use-the-orchestrator)
+- [Key Features](#key-features)
+- [Architecture](#architecture)
+- [No Vendor Lock-in](#no-vendor-lock-in)
+- [Migration from Manual Runners](#migration-from-manual-runners)
+- [Getting Started](#getting-started)
+
 ## What is pupsourcing-orchestrator?
 
 **pupsourcing-orchestrator** is a companion library to [pupsourcing](https://github.com/getpup/pupsourcing) that handles operational coordination for running projections in production. It enables horizontal scaling of projection processing across multiple workers while ensuring correctness through coordinated partition assignment.

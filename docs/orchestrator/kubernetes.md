@@ -4,6 +4,22 @@ Complete guide to deploying the orchestrator on Kubernetes.
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Basic Deployment](#basic-deployment)
+- [Health Checks](#health-checks)
+- [Graceful Shutdown](#graceful-shutdown)
+- [Metrics Service](#metrics-service)
+- [Horizontal Pod Autoscaler](#horizontal-pod-autoscaler)
+- [Resource Limits](#resource-limits)
+- [Complete Example](#complete-example)
+- [Deployment Commands](#deployment-commands)
+- [Troubleshooting](#troubleshooting)
+- [Production Checklist](#production-checklist)
+- [Next Steps](#next-steps)
+
 ## Overview
 
 This guide covers deploying projection workers using the orchestrator to Kubernetes with:

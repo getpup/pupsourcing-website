@@ -4,6 +4,16 @@ Prometheus metrics for monitoring orchestrator health and performance.
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Metrics Integration](#metrics-integration)
+- [Available Metrics](#available-metrics)
+- [Example Queries](#example-queries)
+- [Grafana Dashboard](#grafana-dashboard)
+- [Alerting Rules](#alerting-rules)
+- [Next Steps](#next-steps)
+
 ## Overview
 
 The orchestrator automatically exposes Prometheus metrics prefixed with `pupsourcing_orchestrator_`. These metrics provide visibility into:

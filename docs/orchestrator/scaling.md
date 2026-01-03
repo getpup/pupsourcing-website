@@ -4,6 +4,18 @@ Guide to scaling projection processing from one to many workers.
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Single Worker to Multiple Workers](#single-worker-to-multiple-workers)
+- [When to Scale](#when-to-scale)
+- [Kubernetes Scaling](#kubernetes-scaling)
+- [Monitoring Scaling Events](#monitoring-scaling-events)
+- [Scaling Best Practices](#scaling-best-practices)
+- [Scaling Scenarios](#scaling-scenarios)
+- [Troubleshooting Scaling Issues](#troubleshooting-scaling-issues)
+- [Next Steps](#next-steps)
+
 ## Overview
 
 The orchestrator makes scaling projections simple:

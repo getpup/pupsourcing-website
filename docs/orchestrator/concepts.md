@@ -4,6 +4,15 @@ Understanding the key concepts behind pupsourcing-orchestrator.
 
 ---
 
+## Table of Contents
+
+- [Replica Set](#replica-set)
+- [Generation](#generation)
+- [Worker](#worker)
+- [Recreate Strategy](#recreate-strategy)
+- [Partition Assignment](#partition-assignment)
+- [Next Steps](#next-steps)
+
 ## Replica Set
 
 A **Replica Set** is a named group of projections that scale together as a coordinated unit.

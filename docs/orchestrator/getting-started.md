@@ -4,6 +4,20 @@ Quick start guide to running projections with the orchestrator.
 
 ---
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Database Setup](#database-setup)
+- [Minimal Example](#minimal-example)
+- [Running the Example](#running-the-example)
+- [Verifying Coordination](#verifying-coordination)
+- [Multiple Projections](#multiple-projections)
+- [Configuration Options](#configuration-options)
+- [Next Steps](#next-steps)
+- [Troubleshooting](#troubleshooting)
+- [Examples](#examples)
+
 ## Prerequisites
 
 Before starting, you should have:

@@ -4,6 +4,16 @@ Detailed configuration reference for the orchestrator.
 
 ---
 
+## Table of Contents
+
+- [Config Structure](#config-structure)
+- [Required Fields](#required-fields)
+- [Optional Fields](#optional-fields)
+- [Configuration Presets](#configuration-presets)
+- [Environment-Based Configuration](#environment-based-configuration)
+- [Validation](#validation)
+- [Next Steps](#next-steps)
+
 ## Config Structure
 
 The orchestrator is configured using the `orchestrator.Config` struct:
