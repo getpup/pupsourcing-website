@@ -53,14 +53,26 @@
         <div class="mobile-docs-section">
           <div class="mobile-docs-title">Documentation</div>
           <a href="{{ 'docs-overview/'|url }}" {% if page.url == 'docs-overview/' %}class="active"{% endif %}>Overview</a>
-          <a href="{{ 'getting-started/'|url }}" {% if page.url == 'getting-started/' %}class="active"{% endif %}>Getting Started</a>
+          <div class="mobile-docs-title">Getting Started</div>
+          <a href="{{ 'getting-started/'|url }}" {% if page.url == 'getting-started/' %}class="active"{% endif %}>Quick Start</a>
+          <a href="{{ 'orchestrator/getting-started/'|url }}" {% if page.url == 'orchestrator/getting-started/' %}class="active"{% endif %}>With Orchestrator</a>
+          <div class="mobile-docs-title">Core Concepts</div>
           <a href="{{ 'core-concepts/'|url }}" {% if page.url == 'core-concepts/' %}class="active"{% endif %}>Core Concepts</a>
+          <div class="mobile-docs-title">Orchestrator</div>
+          <a href="{{ 'orchestrator/overview/'|url }}" {% if page.url == 'orchestrator/overview/' %}class="active"{% endif %}>Overview</a>
+          <a href="{{ 'orchestrator/concepts/'|url }}" {% if page.url == 'orchestrator/concepts/' %}class="active"{% endif %}>Concepts</a>
+          <a href="{{ 'orchestrator/configuration/'|url }}" {% if page.url == 'orchestrator/configuration/' %}class="active"{% endif %}>Configuration</a>
+          <a href="{{ 'orchestrator/scaling/'|url }}" {% if page.url == 'orchestrator/scaling/' %}class="active"{% endif %}>Scaling</a>
+          <a href="{{ 'orchestrator/metrics/'|url }}" {% if page.url == 'orchestrator/metrics/' %}class="active"{% endif %}>Metrics</a>
+          <a href="{{ 'orchestrator/kubernetes/'|url }}" {% if page.url == 'orchestrator/kubernetes/' %}class="active"{% endif %}>Kubernetes</a>
+          <div class="mobile-docs-title">Core Library</div>
           <a href="{{ 'projections/'|url }}" {% if page.url == 'projections/' %}class="active"{% endif %}>Projections</a>
-          <a href="{{ 'adapters/'|url }}" {% if page.url == 'adapters/' %}class="active"{% endif %}>Supported Databases</a>
-          <a href="{{ 'eventmap-gen/'|url }}" {% if page.url == 'eventmap-gen/' %}class="active"{% endif %}>Code Generation</a>
+          <a href="{{ 'adapters/'|url }}" {% if page.url == 'adapters/' %}class="active"{% endif %}>Adapters</a>
+          <a href="{{ 'scaling/'|url }}" {% if page.url == 'scaling/' %}class="active"{% endif %}>Manual Scaling</a>
+          <div class="mobile-docs-title">Additional Topics</div>
           <a href="{{ 'deployment/'|url }}" {% if page.url == 'deployment/' %}class="active"{% endif %}>Deployment</a>
-          <a href="{{ 'scaling/'|url }}" {% if page.url == 'scaling/' %}class="active"{% endif %}>Scaling</a>
           <a href="{{ 'observability/'|url }}" {% if page.url == 'observability/' %}class="active"{% endif %}>Observability</a>
+          <a href="{{ 'eventmap-gen/'|url }}" {% if page.url == 'eventmap-gen/' %}class="active"{% endif %}>Event Map Generator</a>
           <a href="{{ 'api-reference/'|url }}" {% if page.url == 'api-reference/' %}class="active"{% endif %}>API Reference</a>
         </div>
         {% endif %}
@@ -98,14 +110,36 @@
           <div class="nav-section">
             <div class="nav-section-title">Docs</div>
             <a href="{{ 'docs-overview/'|url }}" class="nav-link{% if page.url == 'docs-overview/' %} active{% endif %}">Overview</a>
-            <a href="{{ 'getting-started/'|url }}" class="nav-link{% if page.url == 'getting-started/' %} active{% endif %}">Getting Started</a>
+          </div>
+          <div class="nav-section">
+            <div class="nav-section-title">Getting Started</div>
+            <a href="{{ 'getting-started/'|url }}" class="nav-link{% if page.url == 'getting-started/' %} active{% endif %}">Quick Start</a>
+            <a href="{{ 'orchestrator/getting-started/'|url }}" class="nav-link{% if page.url == 'orchestrator/getting-started/' %} active{% endif %}">With Orchestrator</a>
+          </div>
+          <div class="nav-section">
+            <div class="nav-section-title">Core Concepts</div>
             <a href="{{ 'core-concepts/'|url }}" class="nav-link{% if page.url == 'core-concepts/' %} active{% endif %}">Core Concepts</a>
+          </div>
+          <div class="nav-section">
+            <div class="nav-section-title">Orchestrator</div>
+            <a href="{{ 'orchestrator/overview/'|url }}" class="nav-link{% if page.url == 'orchestrator/overview/' %} active{% endif %}">Overview</a>
+            <a href="{{ 'orchestrator/concepts/'|url }}" class="nav-link{% if page.url == 'orchestrator/concepts/' %} active{% endif %}">Concepts</a>
+            <a href="{{ 'orchestrator/configuration/'|url }}" class="nav-link{% if page.url == 'orchestrator/configuration/' %} active{% endif %}">Configuration</a>
+            <a href="{{ 'orchestrator/scaling/'|url }}" class="nav-link{% if page.url == 'orchestrator/scaling/' %} active{% endif %}">Scaling</a>
+            <a href="{{ 'orchestrator/metrics/'|url }}" class="nav-link{% if page.url == 'orchestrator/metrics/' %} active{% endif %}">Metrics</a>
+            <a href="{{ 'orchestrator/kubernetes/'|url }}" class="nav-link{% if page.url == 'orchestrator/kubernetes/' %} active{% endif %}">Kubernetes</a>
+          </div>
+          <div class="nav-section">
+            <div class="nav-section-title">Core Library</div>
             <a href="{{ 'projections/'|url }}" class="nav-link{% if page.url == 'projections/' %} active{% endif %}">Projections</a>
-            <a href="{{ 'adapters/'|url }}" class="nav-link{% if page.url == 'adapters/' %} active{% endif %}">Supported Databases</a>
-            <a href="{{ 'eventmap-gen/'|url }}" class="nav-link{% if page.url == 'eventmap-gen/' %} active{% endif %}">Code Generation</a>
+            <a href="{{ 'adapters/'|url }}" class="nav-link{% if page.url == 'adapters/' %} active{% endif %}">Adapters</a>
+            <a href="{{ 'scaling/'|url }}" class="nav-link{% if page.url == 'scaling/' %} active{% endif %}">Manual Scaling</a>
+          </div>
+          <div class="nav-section">
+            <div class="nav-section-title">Additional Topics</div>
             <a href="{{ 'deployment/'|url }}" class="nav-link{% if page.url == 'deployment/' %} active{% endif %}">Deployment</a>
-            <a href="{{ 'scaling/'|url }}" class="nav-link{% if page.url == 'scaling/' %} active{% endif %}">Scaling</a>
             <a href="{{ 'observability/'|url }}" class="nav-link{% if page.url == 'observability/' %} active{% endif %}">Observability</a>
+            <a href="{{ 'eventmap-gen/'|url }}" class="nav-link{% if page.url == 'eventmap-gen/' %} active{% endif %}">Event Map Generator</a>
             <a href="{{ 'api-reference/'|url }}" class="nav-link{% if page.url == 'api-reference/' %} active{% endif %}">API Reference</a>
           </div>
         </nav>
