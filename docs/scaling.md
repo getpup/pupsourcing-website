@@ -2,6 +2,47 @@
 
 Guide to scaling projection processing across multiple workers.
 
+!!! tip "Recommended: Use the Orchestrator"
+    The **[pupsourcing-orchestrator](orchestrator/overview.md)** is the recommended way to scale projections in production. It handles:
+    
+    - Automatic worker coordination
+    - Partition assignment
+    - Health monitoring and failover
+    - Zero manual configuration
+    
+    **[Orchestrator Scaling Guide](orchestrator/scaling.md)**
+    
+    The documentation below covers manual scaling for users who need fine-grained control or have specialized requirements.
+
+## Migration from Manual to Orchestrator
+
+If you're currently using manual scaling, migrating to the orchestrator is straightforward:
+
+**Before (Manual):**
+```go
+processor := projection.NewPostgresProcessor(projection.ProcessorConfig{
+    DB:              db,
+    EventStore:      eventStore,
+    Projection:      &UserProjection{},
+    PartitionKey:    0,        // Hardcoded
+    TotalPartitions: 3,        // Hardcoded
+})
+```
+
+**After (Orchestrator):**
+```go
+orch, _ := orchestrator.New(
+    db,
+    eventStore,
+    "main-projections",
+)
+orch.Run(ctx, []projection.Projection{&UserProjection{}})
+```
+
+See the [orchestrator migration guide](orchestrator/overview.md#migration-from-manual-runners) for details.
+
+---
+
 ## Table of Contents
 
 1. [Horizontal Scaling](#horizontal-scaling)
