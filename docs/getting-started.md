@@ -229,6 +229,16 @@ defer cancel()
 err := processor.Run(ctx, proj)
 ```
 
+!!! tip "Testing Projections"
+    When writing integration tests for projections, use `RunModeOneOff` to process events synchronously:
+    
+    ```go
+    config := projection.DefaultProcessorConfig()
+    config.RunMode = projection.RunModeOneOff
+    ```
+    
+    This allows your tests to process all events and exit cleanly, making assertions straightforward. See the [Testing Projections](./projections.md#testing-projections) guide for complete examples.
+
 ## Complete Example
 
 See the [complete working example](https://github.com/getpup/pupsourcing/tree/master/examples/single-worker/main.go) that ties everything together.

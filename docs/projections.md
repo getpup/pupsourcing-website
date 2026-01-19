@@ -159,3 +159,117 @@ err := processor.Run(ctx, proj)
 - **Transactional**: Event processing and checkpoint update are atomic
 - **Resumable**: Stops and resumes without data loss
 
+## Testing Projections
+
+### The Challenge
+
+In production, projections run continuously using `RunModeContinuous` mode, polling for new events indefinitely. This creates challenges for integration tests:
+
+- Tests need to manage concurrent goroutines
+- Hard to know when projection processing has completed
+- Difficult to assert final state without timing issues
+- Tests may be flaky due to race conditions
+
+### Solution: RunModeOneOff
+
+For integration tests, use `RunModeOneOff` to process projections synchronously:
+
+```go
+config := projection.DefaultProcessorConfig()
+config.RunMode = projection.RunModeOneOff  // Exit after catching up
+
+processor := postgres.NewProcessor(db, store, &config)
+
+// Append test events
+appendTestEvents(ctx, db, store, testEvents)
+
+// Process all events synchronously - exits when caught up
+err := processor.Run(ctx, myProjection)
+if err != nil {
+    t.Fatal(err)
+}
+
+// Now safely assert projection state
+assertProjectionState(t, myProjection)
+```
+
+### Complete Integration Test Example
+
+```go
+func TestProjection_OneOffMode(t *testing.T) {
+    // Setup
+    db := setupTestDB(t)
+    defer db.Close()
+    
+    ctx := context.Background()
+    store := postgres.NewStore(postgres.DefaultStoreConfig())
+    
+    // Arrange: Append test events
+    events := []es.Event{
+        {
+            BoundedContext: "TestContext",
+            AggregateType:  "User",
+            AggregateID:    "user-1",
+            EventID:        uuid.New(),
+            EventType:      "UserCreated",
+            EventVersion:   1,
+            Payload:        []byte(`{"name":"Alice"}`),
+            Metadata:       []byte(`{}`),
+            CreatedAt:      time.Now(),
+        },
+    }
+    
+    tx, _ := db.BeginTx(ctx, nil)
+    store.Append(ctx, tx, es.NoStream(), events)
+    tx.Commit()
+    
+    // Act: Process with one-off mode
+    proj := &UserProjection{}
+    config := projection.DefaultProcessorConfig()
+    config.RunMode = projection.RunModeOneOff
+    
+    processor := postgres.NewProcessor(db, store, &config)
+    
+    // This will process all events and exit cleanly
+    err := processor.Run(ctx, proj)
+    
+    // Assert: Verify results
+    if err != nil {
+        t.Fatalf("Expected nil error, got: %v", err)
+    }
+    
+    if proj.GetUserCount() != 1 {
+        t.Errorf("Expected 1 user, got %d", proj.GetUserCount())
+    }
+}
+```
+
+### Benefits
+
+- **Deterministic**: Process events synchronously without timing issues
+- **Simple**: No goroutines, channels, or context cancellation needed
+- **Fast**: Tests run as fast as possible without polling delays
+- **Clear**: Explicit about test behavior vs production behavior
+
+### RunMode Comparison
+
+| Mode | Use Case | Behavior |
+|------|----------|----------|
+| `RunModeContinuous` | Production | Runs forever, polling for new events |
+| `RunModeOneOff` | Testing/Catch-up | Processes available events, then exits cleanly |
+
+### Use Cases
+
+- **Integration tests**: Validate projection logic with known event sequences
+- **Catch-up operations**: Process historical events once and exit
+- **Backfilling**: Rebuild projections from existing event store
+- **CI/CD pipelines**: Fast, deterministic tests without timing issues
+
+### Important Notes
+
+- `RunModeOneOff` exits with `nil` error when caught up (not an error condition)
+- Checkpoints are saved correctly in one-off mode
+- Works with all adapters: postgres, mysql, sqlite
+- Partition configuration is respected in one-off mode
+- Scoped projections work normally in one-off mode
+
