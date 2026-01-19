@@ -6,6 +6,7 @@ Guide to building and managing projections in pupsourcing.
 
 1. [Projections Overview](#projections-overview)
 2. [Basic Implementation](#basic-implementation)
+3. [Testing Projections](#testing-projections)
 
 ## Projections Overview
 
