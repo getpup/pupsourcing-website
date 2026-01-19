@@ -8,7 +8,7 @@
   - `RunModeContinuous` (default) - Production mode that runs forever
   - `RunModeOneOff` - Testing mode that processes available events and exits cleanly
   
-  This makes integration testing significantly easier and more deterministic. See the [Testing Projections guide](./projections.md#testing-projections) for details.
+  This makes integration testing significantly easier and more deterministic. See the [One-Off Projection Processing guide](./projections.md#one-off-projection-processing) for details.
 
 ### Improvements
 

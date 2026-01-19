@@ -237,7 +237,7 @@ err := processor.Run(ctx, proj)
     config.RunMode = projection.RunModeOneOff
     ```
     
-    This allows your tests to process all events and exit cleanly, making assertions straightforward. See the [Testing Projections](./projections.md#testing-projections) guide for complete examples.
+    This allows your tests to process all events and exit cleanly, making assertions straightforward. See the [One-Off Projection Processing](./projections.md#one-off-projection-processing) guide for complete examples.
 
 ## Complete Example
 

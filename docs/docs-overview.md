@@ -120,7 +120,7 @@ Order {
 
 This is a common question for newcomers: "If everything is stored as events, how do I get a simple list of orders?"
 
-The answer is **projections** (also called read models). You process events to build tables optimized for queries:
+The answer is **projections**. You process events to build read models—tables optimized for queries:
 
 **Events (append-only):**
 ```

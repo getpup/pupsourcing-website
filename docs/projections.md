@@ -6,7 +6,7 @@ Guide to building and managing projections in pupsourcing.
 
 1. [Projections Overview](#projections-overview)
 2. [Basic Implementation](#basic-implementation)
-3. [Testing Projections](#testing-projections)
+3. [One-Off Projection Processing](#one-off-projection-processing)
 
 ## Projections Overview
 
@@ -160,20 +160,13 @@ err := processor.Run(ctx, proj)
 - **Transactional**: Event processing and checkpoint update are atomic
 - **Resumable**: Stops and resumes without data loss
 
-## Testing Projections
+## One-Off Projection Processing
 
-### The Challenge
+Pupsourcing supports running projections in **one-off mode**, where the processor handles all available events and exits cleanly instead of running continuously. This enables synchronous, deterministic projection processing.
 
-In production, projections run continuously using `RunModeContinuous` mode, polling for new events indefinitely. This creates challenges for integration tests:
+### Overview
 
-- Tests need to manage concurrent goroutines
-- Hard to know when projection processing has completed
-- Difficult to assert final state without timing issues
-- Tests may be flaky due to race conditions
-
-### Solution: RunModeOneOff
-
-For integration tests, use `RunModeOneOff` to process projections synchronously:
+By default, projections run in `RunModeContinuous` mode—polling for new events indefinitely. For scenarios where you need synchronous processing that completes and exits, use `RunModeOneOff`:
 
 ```go
 config := projection.DefaultProcessorConfig()
@@ -181,20 +174,33 @@ config.RunMode = projection.RunModeOneOff  // Exit after catching up
 
 processor := postgres.NewProcessor(db, store, &config)
 
-// Append test events
-appendTestEvents(ctx, db, store, testEvents)
-
 // Process all events synchronously - exits when caught up
 err := processor.Run(ctx, myProjection)
 if err != nil {
-    t.Fatal(err)
+    // Handle error
 }
 
-// Now safely assert projection state
-assertProjectionState(t, myProjection)
+// Projection is now up-to-date and processor has exited
 ```
 
-### Complete Integration Test Example
+### Use Cases
+
+- **Integration tests** (most common): Validate projection logic with known event sequences
+- **Catch-up operations**: Process historical events once and exit
+- **Backfilling**: Rebuild projections from existing event store
+- **CI/CD pipelines**: Fast, deterministic tests without timing issues
+- **One-time data migrations**: Process events synchronously and exit
+
+### Integration Testing with RunModeOneOff
+
+The most common use of one-off mode is **integration testing**. In production, projections run continuously, creating challenges for tests:
+
+- Tests need to manage concurrent goroutines
+- Hard to know when projection processing has completed
+- Difficult to assert final state without timing issues
+- Tests may be flaky due to race conditions
+
+One-off mode solves these problems by processing events synchronously:
 
 ```go
 func TestProjection_OneOffMode(t *testing.T) {
@@ -258,13 +264,6 @@ func TestProjection_OneOffMode(t *testing.T) {
 |------|----------|----------|
 | `RunModeContinuous` | Production | Runs forever, polling for new events |
 | `RunModeOneOff` | Testing/Catch-up | Processes available events, then exits cleanly |
-
-### Use Cases
-
-- **Integration tests**: Validate projection logic with known event sequences
-- **Catch-up operations**: Process historical events once and exit
-- **Backfilling**: Rebuild projections from existing event store
-- **CI/CD pipelines**: Fast, deterministic tests without timing issues
 
 ### Important Notes
 
