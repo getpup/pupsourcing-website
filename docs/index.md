@@ -89,3 +89,4 @@ for _, event := range stream.Events {
 - **[Getting Started](getting-started.md)** — Complete setup guide
 - **[Documentation](docs-overview.md)** — Deep dive into concepts and patterns
 - **[GitHub](https://github.com/getpup/pupsourcing)** — Source code and examples
+- **[Integration Testing](https://github.com/getpup/pupsourcing/tree/master/examples/integration-testing)** — Learn how to test projections

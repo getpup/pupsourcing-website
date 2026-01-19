@@ -593,6 +593,7 @@ Configuration for projection processor.
 type ProcessorConfig struct {
     PartitionStrategy PartitionStrategy  // Partitioning strategy
     Logger            es.Logger          // Optional logger (nil = disabled)
+    RunMode           RunMode            // Processing mode (continuous or one-off)
     BatchSize         int                // Events per batch
     PartitionKey      int                // This worker's partition (0-indexed)
     TotalPartitions   int                // Total number of partitions
@@ -600,6 +601,16 @@ type ProcessorConfig struct {
 ```
 
 **Note:** Fields are ordered by size (interfaces/pointers first) for optimal memory layout.
+
+#### RunMode
+
+Determines processing behavior:
+- `RunModeContinuous` (default): Runs forever, continuously polling for new events
+- `RunModeOneOff`: Processes all available events and exits cleanly
+
+Default: `RunModeContinuous`
+
+Use `RunModeOneOff` for integration tests and one-time catch-up operations.
 
 **Breaking Change (v1.2.0):** Removed `EventsTable` and `CheckpointsTable` fields. Table configuration is now handled by the adapter's store configuration.
 
@@ -615,8 +626,28 @@ func DefaultProcessorConfig() ProcessorConfig {
         TotalPartitions:   1,
         PartitionStrategy: HashPartitionStrategy{},
         Logger:            nil,  // No logging by default
+        RunMode:           RunModeContinuous,  // Continuous mode by default
     }
 }
+```
+
+### projection.RunMode
+
+Determines how the projection processor handles event processing.
+
+**Type:** `int`
+
+**Constants:**
+- `RunModeContinuous` (0) - Default. Runs forever, continuously polling for new events. Use for production.
+- `RunModeOneOff` (1) - Processes all available events and exits cleanly. Use for testing and catch-up operations.
+
+**Example:**
+```go
+config := projection.DefaultProcessorConfig()
+config.RunMode = projection.RunModeOneOff  // Use one-off mode for tests
+
+processor := postgres.NewProcessor(db, store, &config)
+err := processor.Run(ctx, proj)  // Exits when all events are processed
 ```
 
 ### projection.PartitionStrategy
