@@ -308,7 +308,7 @@ type ScopedProjection interface {
 ```go
 type Projection interface {
     Name() string
-    Handle(ctx context.Context, event es.PersistedEvent) error
+    Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error
 }
 ```
 
@@ -427,7 +427,7 @@ Projections must be idempotent because events may be reprocessed during crash re
 
 **Non-idempotent (problematic):**
 ```go
-func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *Projection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     if event.EventType != "OrderPlaced" {
         return nil
     }
@@ -441,7 +441,7 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
 
 **Idempotent approach 1: Track processed events explicitly**
 ```go
-func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *Projection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     if event.EventType != "OrderPlaced" {
         return nil
     }
@@ -458,7 +458,7 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
         return nil  // Already processed, skip
     }
     
-    // Process the event
+    // Process the event using the processor's transaction
     _, err = tx.ExecContext(ctx, 
         "UPDATE sales_statistics SET total_orders = total_orders + 1 WHERE date = CURRENT_DATE")
     if err != nil {
@@ -478,7 +478,7 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
 For type-safe event handling, use the [eventmap-gen](./eventmap-gen.md) tool to generate conversion functions:
 
 ```go
-func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *Projection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     if event.EventType != "UserCreated" {
         return nil
     }
@@ -494,8 +494,7 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
         return fmt.Errorf("unexpected event type")
     }
     
-    // Use INSERT ... ON CONFLICT to make this idempotent
-    // If aggregate_id already exists, update with the same values
+    // Use the processor's transaction for atomic updates
     _, err = tx.ExecContext(ctx,
         `INSERT INTO users (aggregate_id, email, name, created_at) 
          VALUES ($1, $2, $3, $4)
@@ -509,7 +508,7 @@ func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error 
 **Idempotent approach 3: Use event position as version**
 
 ```go
-func (p *Projection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *Projection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     if event.EventType != "InventoryAdjusted" {
         return nil
     }
@@ -760,7 +759,7 @@ type UserRegistered struct {
 }
 
 // Use in projection - eventmap-gen handles version conversion
-func (p *UserProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *UserProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     if event.EventType == "UserRegistered" {
         // Use generated FromESEvent to get the right version
         domainEvent, err := generated.FromESEvent(event)
