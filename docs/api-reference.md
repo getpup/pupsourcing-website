@@ -498,8 +498,8 @@ func (p *MyProjection) Handle(ctx context.Context, tx *sql.Tx, event es.Persiste
 
 **Important:** 
 - Make projections idempotent - events may be reprocessed on crash recovery
-- For SQL projections: Use `tx` for all database operations
-- For non-SQL projections: Ignore `tx` and manage your own connections
+- When using the same database as event store: Use `tx` for all database operations
+- When writing to external destinations: Ignore `tx` and manage your own connections
 - Never call `tx.Commit()` or `tx.Rollback()` - processor manages transaction lifecycle
 - Return an error to trigger rollback of both read model changes and checkpoint update
 

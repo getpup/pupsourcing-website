@@ -20,7 +20,7 @@ func (p *MyProjection) Handle(ctx context.Context, tx *sql.Tx, event es.Persiste
 
 All projections must update their Handle method signatures. The transaction parameter behavior:
 
-**For SQL Projections (PostgreSQL, MySQL, SQLite):**
+**When Using the Same Database as Event Store:**
 Use the `tx` parameter to execute database operations atomically with checkpoint updates:
 
 ```go
@@ -34,13 +34,14 @@ func (p *UserReadModel) Handle(ctx context.Context, tx *sql.Tx, event es.Persist
 }
 ```
 
-**For Non-SQL Projections (Message Brokers, External APIs, Elasticsearch):**
-Ignore the `tx` parameter and manage your own connections:
+**When Writing to External Destinations:**
+Ignore the `tx` parameter for projections writing to external systems (message brokers, separate databases, search engines):
 
 ```go
-func (p *WatermillPublisher) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+func (p *MessageBrokerPublisher) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     // Ignore tx - use message broker client
     _ = tx
+    msg := message.NewMessage(event.EventID.String(), event.Payload)
     return p.publisher.Publish(event.EventType, msg)
 }
 ```

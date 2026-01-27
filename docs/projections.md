@@ -166,10 +166,10 @@ The processor passes its transaction to the `Handle` method, enabling atomic upd
 
 **When to Use the Transaction:**
 
-✅ **SQL-based Read Models** - Use `tx` for all database operations
+✅ **Same Database as Event Store** - Use `tx` for read models stored in the same database
 ```go
 func (p *OrderStats) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
-    // All database operations use the processor's transaction
+    // Use the processor's transaction for atomic updates
     _, err := tx.ExecContext(ctx, "INSERT INTO order_stats ...")
     return err
 }
@@ -177,21 +177,13 @@ func (p *OrderStats) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedE
 
 **When to Ignore the Transaction:**
 
-⚠️ **Non-SQL Destinations** - Ignore `tx` for message brokers, external APIs, NoSQL databases
+⚠️ **External Destinations** - Ignore `tx` for projections writing to external systems (message brokers, separate databases, search engines)
 ```go
-func (p *ElasticsearchIndexer) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
-    // Ignore tx - use Elasticsearch client
+func (p *MessageBrokerPublisher) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+    // Ignore tx - use message broker client to publish events
     _ = tx
-    return p.esClient.Index(ctx, event)
-}
-```
-
-⚠️ **External HTTP APIs** - Ignore `tx` for webhook deliveries or API calls
-```go
-func (p *WebhookDelivery) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
-    // Ignore tx - make HTTP call
-    _ = tx
-    return p.httpClient.Post(ctx, webhookURL, event)
+    msg := message.NewMessage(event.EventID.String(), event.Payload)
+    return p.publisher.Publish(event.EventType, msg)
 }
 ```
 
