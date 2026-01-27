@@ -189,11 +189,11 @@ func (p *UserCountProjection) BoundedContexts() []string {
     return []string{"Identity"}
 }
 
-func (p *UserCountProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *UserCountProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     if event.EventType == "UserCreated" {
-        // Store count in database, not in memory
-        // This makes the projection stateless and safe for concurrent workers
-        _, err := p.db.ExecContext(ctx,
+        // Use the processor's transaction for atomic updates
+        // This ensures the read model and checkpoint are updated together
+        _, err := tx.ExecContext(ctx,
             "INSERT INTO user_stats (metric, value) VALUES ('total_users', 1) "+
             "ON CONFLICT (metric) DO UPDATE SET value = user_stats.value + 1")
         if err != nil {
@@ -202,7 +202,7 @@ func (p *UserCountProjection) Handle(ctx context.Context, event es.PersistedEven
         
         // Query current count for logging
         var count int
-        err = p.db.QueryRowContext(ctx, 
+        err = tx.QueryRowContext(ctx, 
             "SELECT value FROM user_stats WHERE metric = 'total_users'").Scan(&count)
         if err == nil {
             fmt.Printf("User count: %d\n", count)

@@ -276,13 +276,17 @@ func (p *UserReadModel) BoundedContexts() []string {
     return []string{"Identity"}
 }
 
-func (p *UserReadModel) Handle(ctx context.Context, event es.PersistedEvent) error {
-    // Update your read model
+func (p *UserReadModel) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+    // Update your read model using the processor's transaction
     switch event.EventType {
     case "UserCreated":
-        // Create user in read model
+        // Use tx for atomic updates
+        _, err := tx.ExecContext(ctx, "INSERT INTO user_read_model ...")
+        return err
     case "EmailChanged":
-        // Update email in read model
+        // All changes in the same transaction as checkpoint
+        _, err := tx.ExecContext(ctx, "UPDATE user_read_model ...")
+        return err
     }
     return nil
 }

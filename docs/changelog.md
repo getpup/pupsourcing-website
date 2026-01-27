@@ -1,5 +1,61 @@
 # Changelog
 
+## v1.2.0 - 2026-01-27
+
+### Breaking Changes
+
+⚠️ **Projection Handle Signature Change** - The `Projection.Handle` method now includes a transaction parameter to enable atomic read model and checkpoint updates.
+
+**Before (v1.1.0):**
+```go
+func (p *MyProjection) Handle(ctx context.Context, event es.PersistedEvent) error
+```
+
+**After (v1.2.0):**
+```go
+func (p *MyProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error
+```
+
+**Migration Guide:**
+
+All projections must update their Handle method signatures. The transaction parameter behavior:
+
+**For SQL Projections (PostgreSQL, MySQL, SQLite):**
+Use the `tx` parameter to execute database operations atomically with checkpoint updates:
+
+```go
+func (p *UserReadModel) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+    // Use tx for database operations
+    _, err := tx.ExecContext(ctx, 
+        "INSERT INTO users (id, name) VALUES ($1, $2) "+
+        "ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name",
+        userID, name)
+    return err
+}
+```
+
+**For Non-SQL Projections (Message Brokers, External APIs, Elasticsearch):**
+Ignore the `tx` parameter and manage your own connections:
+
+```go
+func (p *WatermillPublisher) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+    // Ignore tx - use message broker client
+    _ = tx
+    return p.publisher.Publish(event.EventType, msg)
+}
+```
+
+**Benefits:**
+- **Atomic Updates**: Read model changes and checkpoints are committed together
+- **Data Consistency**: Eliminates the "projection succeeded but checkpoint failed" scenario
+- **Simplified Code**: No need to manage separate transactions in SQL projections
+
+### Improvements
+
+- Transaction-based projection processing for better consistency
+- All adapters (PostgreSQL, MySQL, SQLite) pass transaction to projections
+- Processor manages transaction lifecycle automatically
+
 ## v1.1.0 - 2026-01-19
 
 ### New Features

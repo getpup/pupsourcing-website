@@ -140,7 +140,7 @@ type SafeProjection struct {
     count int64
 }
 
-func (p *SafeProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *SafeProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     atomic.AddInt64(&p.count, 1)  // Thread-safe
     return nil
 }
@@ -148,7 +148,7 @@ func (p *SafeProjection) Handle(ctx context.Context, event es.PersistedEvent) er
 // ✅ Good: Stateless (only updates database)
 type StatelessProjection struct{}
 
-func (p *StatelessProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *StatelessProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     _, err := tx.ExecContext(ctx, "INSERT INTO read_model ...")  // Database handles concurrency
     return err
 }
@@ -158,7 +158,7 @@ type UnsafeProjection struct {
     count int  // Race condition!
 }
 
-func (p *UnsafeProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *UnsafeProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     p.count++  // NOT thread-safe!
     return nil
 }
@@ -472,16 +472,17 @@ TRUNCATE TABLE my_read_model;
 ### Error Handling
 
 ```go
-func (p *MyProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *MyProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     // Transient errors: return error to retry
-    if err := someOperation(); err != nil {
+    // The processor will rollback the transaction automatically
+    if err := someOperation(tx); err != nil {
         return fmt.Errorf("transient error: %w", err)
     }
     
     // Permanent errors: log and skip
     if err := validate(event); err != nil {
         log.Printf("Invalid event %s: %v", event.EventID, err)
-        return nil  // Skip this event
+        return nil  // Skip this event, transaction still commits
     }
     
     return nil

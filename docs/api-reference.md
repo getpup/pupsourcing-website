@@ -392,14 +392,16 @@ func (p *UserReadModelProjection) AggregateTypes() []string {
     return []string{"User"}
 }
 
-func (p *UserReadModelProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *UserReadModelProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     // Only User events arrive here
-    // Projection manages its own database operations
+    // Use processor's transaction for atomic updates
     switch event.EventType {
     case "UserCreated":
-        // Update read model
+        _, err := tx.ExecContext(ctx, "INSERT INTO users_read_model ...")
+        return err
     case "UserUpdated":
-        // Update read model
+        _, err := tx.ExecContext(ctx, "UPDATE users_read_model ...")
+        return err
     }
     return nil
 }
@@ -412,11 +414,11 @@ Interface for event projection handlers. Projections are storage-agnostic and ca
 ```go
 type Projection interface {
     Name() string
-    Handle(ctx context.Context, event es.PersistedEvent) error
+    Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error
 }
 ```
 
-**Breaking Change (v1.2.0):** Removed `tx es.DBTX` parameter from `Handle()` method. Projections now manage their own persistence connections.
+**Breaking Change (v1.2.0):** Added `tx *sql.Tx` parameter to `Handle()` method to enable atomic read model and checkpoint updates.
 
 #### Example: Global Integration Publisher
 
@@ -431,9 +433,11 @@ func (p *WatermillPublisher) Name() string {
 
 // No AggregateTypes() method - receives ALL events
 
-func (p *WatermillPublisher) Handle(ctx context.Context, event es.PersistedEvent) error {
-    // Receives all events - publish to message broker
-    // Projection manages its own persistence (no transaction parameter)
+func (p *WatermillPublisher) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+    // Ignore tx for non-SQL projections
+    _ = tx
+    
+    // Use message broker client
     msg := message.NewMessage(event.EventID.String(), event.Payload)
     return p.publisher.Publish(event.EventType, msg)
 }
@@ -443,17 +447,20 @@ func (p *WatermillPublisher) Handle(ctx context.Context, event es.PersistedEvent
 
 ```go
 type UserReadModelProjection struct {
-    db *sql.DB  // Projection manages its own database connection
+    // No need to store db connection - use tx parameter
 }
 
 func (p *UserReadModelProjection) Name() string {
     return "user_read_model"
 }
 
-func (p *UserReadModelProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
-    // Projection manages its own database operations
+func (p *UserReadModelProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+    // Use processor's transaction for atomic updates
     if event.EventType == "UserCreated" {
-        _, err := p.db.ExecContext(ctx, "INSERT INTO users_read_model ...")
+        _, err := tx.ExecContext(ctx, 
+            "INSERT INTO users_read_model (id, name) VALUES ($1, $2) "+
+            "ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name",
+            event.AggregateID, name)
         return err
     }
     return nil
@@ -472,10 +479,10 @@ func (p *MyProjection) Name() string {
 
 #### Handle
 
-Processes a single event. Projections manage their own persistence.
+Processes a single event. The processor provides its transaction to enable atomic updates.
 
 ```go
-func (p *MyProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *MyProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     // Process event
     return nil
 }
@@ -483,15 +490,18 @@ func (p *MyProjection) Handle(ctx context.Context, event es.PersistedEvent) erro
 
 **Parameters:**
 - `ctx`: Context for cancellation
+- `tx`: Processor's transaction for atomic read model updates (use for SQL, ignore for non-SQL)
 - `event`: Event to process (passed by value to enforce immutability)
 
 **Returns:**
-- `error`: Return error to stop projection processing
+- `error`: Return error to stop projection processing and rollback transaction
 
 **Important:** 
 - Make projections idempotent - events may be reprocessed on crash recovery
-- Projections manage their own persistence connections (database, message broker, etc.)
-- For SQL projections, consider managing transactions within your Handle implementation
+- For SQL projections: Use `tx` for all database operations
+- For non-SQL projections: Ignore `tx` and manage your own connections
+- Never call `tx.Commit()` or `tx.Rollback()` - processor manages transaction lifecycle
+- Return an error to trigger rollback of both read model changes and checkpoint update
 
 ### postgres.Processor
 

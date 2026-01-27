@@ -531,8 +531,8 @@ type InstrumentedProjection struct {
     inner projection.Projection
 }
 
-func (p *InstrumentedProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
-    err := p.inner.Handle(ctx, event)
+func (p *InstrumentedProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+    err := p.inner.Handle(ctx, tx, event)
     if err != nil {
         projectionErrors.WithLabelValues(p.inner.Name()).Inc()
         return err

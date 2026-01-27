@@ -275,13 +275,11 @@ type TracedProjection struct {
     tracer trace.Tracer
 }
 
-func (p *TracedProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *TracedProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     // Extract trace ID from event if present
     if event.TraceID.Valid {
-        // Parse the trace ID string (assuming it's in hex format)
         traceID, err := trace.TraceIDFromHex(event.TraceID.String)
         if err == nil {
-            // Create new span with the trace ID
             spanCtx := trace.NewSpanContext(trace.SpanContextConfig{
                 TraceID:    traceID,
                 TraceFlags: trace.FlagsSampled,
@@ -300,10 +298,9 @@ func (p *TracedProjection) Handle(ctx context.Context, event es.PersistedEvent) 
     )
     defer span.End()
     
-    // Process event with trace context
-    // ...
-    
-    return nil
+    // Process event with trace context using processor's transaction
+    _, err := tx.ExecContext(ctx, "INSERT INTO traced_events ...")
+    return err
 }
 ```
 

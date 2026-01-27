@@ -67,7 +67,7 @@ func (p *UserCountProjection) BoundedContexts() []string {
     return []string{"Identity"}
 }
 
-func (p *UserCountProjection) Handle(ctx context.Context, event es.PersistedEvent) error {
+func (p *UserCountProjection) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
     // Only User events arrive here - no need to check EventType for other aggregates
     
     // Use eventmap-gen for type-safe event handling (see Code Generation chapter)
@@ -79,7 +79,7 @@ func (p *UserCountProjection) Handle(ctx context.Context, event es.PersistedEven
     // Type switch provides compile-time safety
     switch e := domainEvent.(type) {
     case events.UserCreated:
-        // Update read model in the same transaction
+        // Use the processor's transaction for atomic updates
         _, err := tx.ExecContext(ctx,
             "INSERT INTO user_stats (user_id, email, created_at) VALUES ($1, $2, $3)"+
             "ON CONFLICT (user_id) DO NOTHING",
@@ -117,12 +117,12 @@ func (p *WatermillPublisher) Name() string {
 
 // No AggregateTypes() method - receives ALL events
 
-func (p *WatermillPublisher) Handle(ctx context.Context, event es.PersistedEvent) error {
-    // Receives all events regardless of aggregate type
-    msg := message.NewMessage(event.EventID.String(), event.Payload)
-    msg.Metadata.Set("aggregate_type", event.AggregateType)
-    msg.Metadata.Set("event_type", event.EventType)
+func (p *WatermillPublisher) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+    // Ignore tx parameter for non-SQL projections
+    _ = tx
     
+    // Use message broker client instead
+    msg := message.NewMessage(event.EventID.String(), event.Payload)
     return p.publisher.Publish(event.EventType, msg)
 }
 ```
@@ -159,6 +159,43 @@ err := processor.Run(ctx, proj)
 - **At-Least-Once Delivery**: Events may be reprocessed on crash (make projections idempotent)
 - **Transactional**: Event processing and checkpoint update are atomic
 - **Resumable**: Stops and resumes without data loss
+
+### Transaction Management
+
+The processor passes its transaction to the `Handle` method, enabling atomic updates of read models and checkpoints.
+
+**When to Use the Transaction:**
+
+✅ **SQL-based Read Models** - Use `tx` for all database operations
+```go
+func (p *OrderStats) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+    // All database operations use the processor's transaction
+    _, err := tx.ExecContext(ctx, "INSERT INTO order_stats ...")
+    return err
+}
+```
+
+**When to Ignore the Transaction:**
+
+⚠️ **Non-SQL Destinations** - Ignore `tx` for message brokers, external APIs, NoSQL databases
+```go
+func (p *ElasticsearchIndexer) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+    // Ignore tx - use Elasticsearch client
+    _ = tx
+    return p.esClient.Index(ctx, event)
+}
+```
+
+⚠️ **External HTTP APIs** - Ignore `tx` for webhook deliveries or API calls
+```go
+func (p *WebhookDelivery) Handle(ctx context.Context, tx *sql.Tx, event es.PersistedEvent) error {
+    // Ignore tx - make HTTP call
+    _ = tx
+    return p.httpClient.Post(ctx, webhookURL, event)
+}
+```
+
+**Important:** Never call `tx.Commit()` or `tx.Rollback()` in your projection. The processor manages the transaction lifecycle automatically.
 
 ## One-Off Projection Processing
 
